@@ -31,12 +31,12 @@ after(() => {
   server?.kill("SIGTERM");
 });
 
-test("server-renders the StrideSync results board", async () => {
+test("server-renders the RAU results board", async () => {
   const response = await fetch(`${origin}/`, { headers: { accept: "text/html" } });
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
-  assert.match(html, /<title>StrideSync Live Results<\/title>/i);
+  assert.match(html, /<title>RAU Live Results<\/title>/i);
   assert.match(html, /AI Championship Results Center/);
   assert.match(html, /Live Race/);
   assert.match(html, /Event Index/);

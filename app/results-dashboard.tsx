@@ -139,15 +139,17 @@ export function ResultsDashboard() {
   return (
     <div className="site-shell">
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="StrideSync home">
-          <span className="brand-logo" aria-hidden="true">
-            <span>SS</span>
-            <i />
-            <i />
-            <i />
-          </span>
+        <a className="brand" href="#top" aria-label="RAU home">
+          <Image
+            className="brand-logo"
+            src="/rau-logo.png"
+            alt="RAU logo"
+            width={140}
+            height={134}
+            priority
+          />
           <span className="brand-copy">
-            <strong>StrideSync AI Championships</strong>
+            <strong>RAU</strong>
             <span>Roblox Server Results · Live Meet</span>
           </span>
         </a>
@@ -283,7 +285,7 @@ export function ResultsDashboard() {
         </section>
       </main>
 
-      <footer className="site-footer"><span>StrideSync Results Engine</span><span>Server authoritative · Live 0.25s · Results 12s</span></footer>
+      <footer className="site-footer"><span>RAU Results Engine</span><span>Server authoritative · Live 0.25s · Results 12s</span></footer>
     </div>
   );
 }

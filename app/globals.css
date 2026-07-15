@@ -40,22 +40,13 @@ a { color: inherit; }
 }
 .brand { align-items: center; display: flex; gap: 18px; text-decoration: none; }
 .brand-logo {
-  align-items: center;
-  background: var(--teal);
-  border: 4px solid rgba(255,255,255,.9);
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(0,166,166,.28);
-  display: flex;
-  height: 74px;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-  width: 74px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.28);
+  flex: 0 0 auto;
+  height: 76px;
+  object-fit: cover;
+  width: 80px;
 }
-.brand-logo span { font-size: 18px; font-weight: 900; letter-spacing: -1px; position: relative; z-index: 2; }
-.brand-logo i { border: 2px solid rgba(255,255,255,.65); border-radius: 50%; height: 58px; left: 37px; position: absolute; top: 31px; width: 58px; }
-.brand-logo i:nth-of-type(2) { height: 43px; left: 42px; top: 38px; width: 43px; }
-.brand-logo i:nth-of-type(3) { height: 28px; left: 48px; top: 45px; width: 28px; }
 .brand-copy { display: flex; flex-direction: column; gap: 10px; }
 .brand-copy strong { font-size: clamp(22px, 2.1vw, 32px); letter-spacing: -.6px; }
 .brand-copy span { color: #dce8f2; font-size: clamp(14px, 1.15vw, 18px); }
@@ -247,7 +238,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #62dcd8; outline-offs
 
 @media (max-width: 720px) {
   .topbar { min-height: auto; padding: 20px; }
-  .brand-logo { height: 60px; width: 60px; }
+  .brand-logo { height: 58px; width: 61px; }
   .brand-copy strong { font-size: 19px; }
   .brand-copy span { font-size: 13px; }
   .topbar nav { gap: 14px 20px; }

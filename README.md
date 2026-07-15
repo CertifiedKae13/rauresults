@@ -1,4 +1,4 @@
-# StrideSync Live Results
+# RAU Live Results
 
 A Flash Results-inspired live dashboard for server-authoritative Roblox AI track meets. It accepts signed live snapshots and completed result presentations from `AIMeetSystem`, keeps the active race hot at four updates per second, and stores completed results durably in D1.
 
