@@ -4,6 +4,8 @@ export type ResultRow = {
   time: string;
   rawTime: number | null;
   gap: number | null;
+  section: number | null;
+  sectionPlace: number | null;
   gender: string;
   team: string;
   teamAbbr: string;

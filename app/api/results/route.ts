@@ -39,6 +39,8 @@ function normalizeRow(value: unknown, fallbackRank: number): ResultRow {
   const points = finiteNumber(valueFrom(input, "points", "Points"));
   const rawTime = finiteNumber(valueFrom(input, "rawTime", "RawTime"));
   const gap = finiteNumber(valueFrom(input, "gap", "Gap"));
+  const section = finiteNumber(valueFrom(input, "section", "Section"));
+  const sectionPlace = finiteNumber(valueFrom(input, "sectionPlace", "SectionPlace"));
 
   return {
     rank: rank ? Math.max(1, Math.min(999, Math.floor(rank))) : fallbackRank,
@@ -46,6 +48,8 @@ function normalizeRow(value: unknown, fallbackRank: number): ResultRow {
     time: shortString(valueFrom(input, "time", "Time"), "--", 24),
     rawTime,
     gap,
+    section: section === null ? null : Math.max(1, Math.min(99, Math.floor(section))),
+    sectionPlace: sectionPlace === null ? null : Math.max(1, Math.min(99, Math.floor(sectionPlace))),
     gender: shortString(valueFrom(input, "gender", "Gender"), "Open", 24),
     team: shortString(valueFrom(input, "team", "Team"), "Unattached", 80),
     teamAbbr: shortString(valueFrom(input, "teamAbbr", "TeamAbbr"), "UNA", 12),

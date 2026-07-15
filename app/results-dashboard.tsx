@@ -106,6 +106,11 @@ export function ResultsDashboard() {
   }
 
   const status = data?.demo ? "Demo feed" : "Live from Roblox";
+  const sectionHeading = selectedReport?.stage === "HEATS"
+    ? "Heat (Pl)"
+    : selectedReport?.stage === "SEMIFINAL"
+      ? "Semi (Pl)"
+      : "Sec (Pl)";
 
   return (
     <div className="site-shell">
@@ -194,12 +199,18 @@ export function ResultsDashboard() {
             {selectedReport ? (
               <>
                 <div className="result-summary">
-                  <div><p className="eyebrow">RESULTS · {selectedReport.stage}</p><h2 id="results-title">{selectedReport.category} {eventLabel(selectedReport.event)}</h2><p>{selectedReport.roundName} · {selectedReport.rowCount} starters</p></div>
+                  <div>
+                    <p className="eyebrow">RESULTS · {selectedReport.stage}</p>
+                    <h2 id="results-title">{selectedReport.category} {eventLabel(selectedReport.event)}</h2>
+                    <p>{selectedReport.roundName} · {selectedReport.rowCount} starters</p>
+                    {selectedReport.stage === "HEATS" && <p className="qualification-note"><strong>Q</strong> top 3 each heat · <strong>q</strong> next 6 fastest times</p>}
+                    {selectedReport.stage === "SEMIFINAL" && <p className="qualification-note"><strong>Q</strong> 8 fastest times advance</p>}
+                  </div>
                   <span className="complete-stamp">{selectedReport.isFinal ? "COMPLETE" : "ADVANCING"}</span>
                 </div>
                 <div className="table-scroll">
                   <table className="results-table">
-                    <thead><tr><th>Pl</th><th>Athlete</th><th>Team</th><th>Time</th><th>{selectedReport.isFinal ? "Pts" : "Gap"}</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Pl</th><th>Athlete</th><th>Team</th><th>Time</th><th>{sectionHeading}</th><th>{selectedReport.isFinal ? "Pts" : "Gap"}</th><th>Status</th></tr></thead>
                     <tbody>
                       {selectedReport.results.map((row) => (
                         <tr key={`${row.rank}-${row.name}`}>
@@ -207,8 +218,9 @@ export function ResultsDashboard() {
                           <td><strong>{row.name}</strong><span className="mobile-subline">{row.team}</span></td>
                           <td><div className="team-cell"><TeamMark row={row} /><span>{row.team}</span></div></td>
                           <td className="time-cell">{row.time}</td>
+                          <td>{row.section ? `${row.section} (${row.sectionPlace ?? "—"})` : "—"}</td>
                           <td>{selectedReport.isFinal ? (row.points ?? "—") : (row.gap ? `+${row.gap.toFixed(2)}` : "—")}</td>
-                          <td>{row.status && <span className={`result-status ${row.status === "Q" ? "qualified" : ""}`}>{row.status}</span>}</td>
+                          <td>{row.status && <span className={`result-status ${row.status === "Q" || row.status === "q" ? "qualified" : ""}`}>{row.status}</span>}</td>
                         </tr>
                       ))}
                     </tbody>

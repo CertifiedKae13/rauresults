@@ -134,9 +134,10 @@ tbody tr:hover { background: #eaf6f5; }
 .result-summary { align-items: center; display: flex; justify-content: space-between; padding: 26px 26px 22px; }
 .result-summary h2 { font-size: clamp(23px, 2.1vw, 31px); }
 .result-summary p:not(.eyebrow) { color: var(--muted); margin: 7px 0 0; }
+.result-summary .qualification-note { color: var(--teal-dark); font-size: 12px; font-weight: 700; }
 .complete-stamp { border: 2px solid var(--teal-dark); color: var(--teal-dark); font-size: 11px; font-weight: 900; letter-spacing: 1px; padding: 8px 10px; }
 .results-table { min-width: 720px; }
-.results-table th:nth-child(1), .results-table td:nth-child(1), .results-table th:nth-child(5), .results-table td:nth-child(5), .results-table th:nth-child(6), .results-table td:nth-child(6) { text-align: center; }
+.results-table th:nth-child(1), .results-table td:nth-child(1), .results-table th:nth-child(5), .results-table td:nth-child(5), .results-table th:nth-child(6), .results-table td:nth-child(6), .results-table th:nth-child(7), .results-table td:nth-child(7) { text-align: center; }
 .results-table td { font-size: 15px; padding-bottom: 14px; padding-top: 14px; }
 .results-table td:nth-child(2) strong { font-size: 16px; }
 .time-cell { font-size: 17px !important; font-variant-numeric: tabular-nums; font-weight: 900; }
