@@ -11,7 +11,7 @@ export type ResultRow = {
   name: string;
   time: string;
   rawTime: number | null;
-  splits: SplitTime[];
+  splits?: SplitTime[];
   gap: number | null;
   section: number | null;
   sectionPlace: number | null;

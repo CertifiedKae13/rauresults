@@ -35,6 +35,20 @@ function database(): D1Database | null {
   return runtimeEnv().DB ?? null;
 }
 
+function hydrateHistoricalReport(report: ResultReport): ResultReport {
+  const addSplitFallback = (rows: ResultReport["results"]) =>
+    (Array.isArray(rows) ? rows : []).map((row) => ({
+      ...row,
+      splits: Array.isArray(row.splits) ? row.splits : [],
+    }));
+
+  return {
+    ...report,
+    results: addSplitFallback(report.results),
+    standings: addSplitFallback(report.standings),
+  };
+}
+
 async function ensureSchema(db: D1Database): Promise<void> {
   if (!initialization) {
     initialization = db
@@ -74,7 +88,7 @@ export async function listReports(limit = 50): Promise<ResultsResponse> {
   const reports: ResultReport[] = [];
   for (const row of rows.results ?? []) {
     try {
-      const parsed = JSON.parse(row.payload_json) as ResultReport;
+      const parsed = hydrateHistoricalReport(JSON.parse(row.payload_json) as ResultReport);
       reports.push({ ...parsed, receivedAt: row.received_at });
     } catch {
       // Ignore a malformed historical record instead of breaking the public board.

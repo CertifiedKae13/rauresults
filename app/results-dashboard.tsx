@@ -118,7 +118,7 @@ export function ResultsDashboard() {
   const splitColumns = useMemo(() => {
     const distances = new Set<number>();
     for (const row of selectedReport?.results ?? []) {
-      for (const split of row.splits) distances.add(split.distance);
+      for (const split of row.splits ?? []) distances.add(split.distance);
     }
     return Array.from(distances).sort((left, right) => left - right);
   }, [selectedReport]);
@@ -245,7 +245,7 @@ export function ResultsDashboard() {
                           <td><strong>{row.name}</strong></td>
                           <td><div className="team-cell"><TeamLogo row={row} /></div></td>
                           {splitColumns.map((distance) => {
-                            const split = row.splits.find((candidate) => candidate.distance === distance);
+                            const split = (row.splits ?? []).find((candidate) => candidate.distance === distance);
                             return <td key={distance} className="split-time-cell">{split ? <>{split.time}<small>{split.position ? `(${split.position})` : ""}</small></> : "—"}</td>;
                           })}
                           <td className="time-cell">{row.time}</td>
