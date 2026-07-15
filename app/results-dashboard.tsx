@@ -147,6 +147,7 @@ export function ResultsDashboard() {
             width={140}
             height={134}
             priority
+            unoptimized
           />
           <span className="brand-copy">
             <strong>RAU</strong>
