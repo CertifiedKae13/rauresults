@@ -40,6 +40,26 @@ test("lane arc length compares staggered curved lanes fairly", () => {
   assert.ok(Math.abs(insideProgress - outsideProgress) < 0.08);
 });
 
+test("leader progress ends at the finish wall instead of an authored runout", () => {
+  // Tim has covered more of the actual race, but his lane happens to include a
+  // much longer post-finish waypoint route. Full-route normalization reverses
+  // the order; finish-calibrated normalization restores the real leader.
+  const timDistance = 320;
+  const timFinishDistance = 400;
+  const timRouteWithRunout = 520;
+  const rivalDistance = 315;
+  const rivalFinishDistance = 410;
+  const rivalRouteWithRunout = 430;
+
+  const legacyTim = timDistance / timRouteWithRunout;
+  const legacyRival = rivalDistance / rivalRouteWithRunout;
+  assert.ok(legacyTim < legacyRival);
+
+  const calibratedTim = timDistance / timFinishDistance;
+  const calibratedRival = rivalDistance / rivalFinishDistance;
+  assert.ok(calibratedTim > calibratedRival);
+});
+
 test("split crossing interpolation stays between samples", () => {
   const previousMeters = 56;
   const currentMeters = 64;

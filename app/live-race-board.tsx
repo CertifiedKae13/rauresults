@@ -167,7 +167,7 @@ export function LiveRaceBoard() {
         </table>
       </div>
       <footer className="live-board-footer">
-        <span>Positions compare normalized distance along each curved lane path.</span>
+        <span>Positions compare finish-calibrated distance along each curved lane path.</span>
         <span className={`live-latency${live.timerRunning && feedDelay > 1 ? " delayed" : ""}`}>
           {live.timerRunning ? `Feed delay ${feedDelay.toFixed(2)}s` : "Final snapshot locked"}
         </span>

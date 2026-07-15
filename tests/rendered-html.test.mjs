@@ -91,6 +91,9 @@ test("live board exposes finished time and removes the track-sector and latest-s
   assert.match(source, /requestInFlight\.current/);
   assert.match(source, /setInterval\(\(\) => void loadLive\(\), 250\)/);
   assert.match(source, /Feed delay/);
+  assert.match(source, /finish-calibrated distance/);
+  const orderSource = await readFile(new URL("../lib/live-order.ts", import.meta.url), "utf8");
+  assert.match(orderSource, /right\.distanceMeters - left\.distanceMeters/);
   assert.doesNotMatch(source, /<th>Track sector<\/th>/);
   assert.doesNotMatch(source, /<th>Latest split<\/th>/);
 });
