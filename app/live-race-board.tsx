@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LiveEntrant, LiveResponse } from "../lib/live-types";
 
 const TEAM_LOGOS: Record<string, string> = {
@@ -38,21 +38,40 @@ export function LiveRaceBoard() {
   const [response, setResponse] = useState<LiveResponse | null>(null);
   const [loadError, setLoadError] = useState("");
   const [clockNow, setClockNow] = useState(() => Date.now() / 1000);
+  const requestInFlight = useRef(false);
+  const newestSnapshotAt = useRef(0);
 
   const loadLive = useCallback(async () => {
+    if (requestInFlight.current) return;
+    requestInFlight.current = true;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 2500);
     try {
-      const request = await fetch("/api/live", { cache: "no-store" });
+      const request = await fetch(`/api/live?now=${Date.now()}`, {
+        cache: "no-store",
+        signal: controller.signal,
+      });
       if (!request.ok) throw new Error(`Live timing request failed (${request.status})`);
-      setResponse(await request.json() as LiveResponse);
+      const next = await request.json() as LiveResponse;
+      const nextSnapshotAt = next.live?.capturedAtUnix ?? Date.parse(next.serverNow) / 1000;
+      if (!Number.isFinite(nextSnapshotAt) || nextSnapshotAt >= newestSnapshotAt.current) {
+        newestSnapshotAt.current = Number.isFinite(nextSnapshotAt) ? nextSnapshotAt : newestSnapshotAt.current;
+        setResponse(next);
+      }
       setLoadError("");
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : "Live timing is unavailable");
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        setLoadError(error instanceof Error ? error.message : "Live timing is unavailable");
+      }
+    } finally {
+      window.clearTimeout(timeout);
+      requestInFlight.current = false;
     }
   }, []);
 
   useEffect(() => {
     const initial = window.setTimeout(() => void loadLive(), 0);
-    const poll = window.setInterval(() => void loadLive(), 500);
+    const poll = window.setInterval(() => void loadLive(), 250);
     return () => {
       window.clearTimeout(initial);
       window.clearInterval(poll);
@@ -85,6 +104,7 @@ export function LiveRaceBoard() {
   }
 
   const bubbleTime = live.bubbleDisplayTime ?? (live.bubbleTime === null ? "—" : formatTimer(live.bubbleTime));
+  const feedDelay = Math.max(0, clockNow - live.capturedAtUnix);
 
   return (
     <section className="live-board" id="live" aria-labelledby="live-title">
@@ -148,7 +168,10 @@ export function LiveRaceBoard() {
       </div>
       <footer className="live-board-footer">
         <span>Positions compare normalized distance along each curved lane path.</span>
-        <span>Live snapshots refresh every 0.5 seconds.</span>
+        <span className={`live-latency${live.timerRunning && feedDelay > 1 ? " delayed" : ""}`}>
+          {live.timerRunning ? `Feed delay ${feedDelay.toFixed(2)}s` : "Final snapshot locked"}
+        </span>
+        <span>Live snapshots refresh up to four times per second.</span>
       </footer>
     </section>
   );

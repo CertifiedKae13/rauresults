@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getIngestToken } from "../../../lib/results-store";
 import { getLatestLiveRace, upsertLiveRace } from "../../../lib/live-store";
+import { orderLiveEntrants } from "../../../lib/live-order";
 import type { LiveEntrant, LiveRace, WorldRecord } from "../../../lib/live-types";
 import type { SplitTime } from "../../../lib/result-types";
 
@@ -81,14 +82,7 @@ function normalizeEntrants(value: unknown, eventDistance: number): LiveEntrant[]
     } satisfies LiveEntrant;
   });
 
-  entrants.sort((left, right) => {
-    if (left.finishPlace && right.finishPlace) return left.finishPlace - right.finishPlace;
-    if (left.finishPlace) return -1;
-    if (right.finishPlace) return 1;
-    if (Math.abs(right.progress - left.progress) > 0.00001) return right.progress - left.progress;
-    return left.name.localeCompare(right.name);
-  });
-  return entrants.map((entrant, index) => ({ ...entrant, rank: entrant.finishPlace ?? index + 1 }));
+  return orderLiveEntrants(entrants);
 }
 
 function normalizeWorldRecord(value: unknown): WorldRecord | null {
@@ -170,7 +164,10 @@ function secureEqual(left: string, right: string): boolean {
 
 export async function GET() {
   return NextResponse.json(await getLatestLiveRace(), {
-    headers: { "Cache-Control": "no-store, max-age=0" },
+    headers: {
+      "Cache-Control": "no-store, max-age=0",
+      "CDN-Cache-Control": "no-store",
+    },
   });
 }
 

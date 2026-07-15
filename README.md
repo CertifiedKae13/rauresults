@@ -1,16 +1,17 @@
 # StrideSync Live Results
 
-A Flash Results-inspired live dashboard for server-authoritative Roblox AI track meets. It accepts signed result presentations from `AIMeetSystem`, stores them durably in D1, and refreshes the browser every 12 seconds.
+A Flash Results-inspired live dashboard for server-authoritative Roblox AI track meets. It accepts signed live snapshots and completed result presentations from `AIMeetSystem`, keeps the active race hot at four updates per second, and stores completed results durably in D1.
 
 ## Architecture
 
 ```text
 AIMeetSystem
   -> WebsiteResultsReporter (server-only queue + retry)
+  -> POST /api/live (0.25-second active-race snapshots)
   -> POST /api/results (bearer authentication + validation + rate limit)
-  -> D1 result_reports
-  -> GET /api/results
-  -> responsive event index, result table, and team standings
+  -> hot live snapshot + D1 result_reports
+  -> GET /api/live and GET /api/results
+  -> live race board, event index, result table, and team standings
 ```
 
 The ingest route is idempotent on `reportId`. It accepts the ingest credential in `X-Results-Token` (or standard bearer authorization on hosts without an authentication gateway). Each body is capped at 128 KB, each presentation is capped at 64 rows, and each Roblox job can store at most 120 new reports per minute.

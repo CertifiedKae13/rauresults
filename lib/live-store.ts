@@ -14,8 +14,11 @@ type D1Database = {
 };
 type RuntimeEnv = { DB?: D1Database };
 type StoredLiveRace = { payload_json: string; received_at: string };
+type LiveMemory = { live: LiveRace; receivedAt: string; validUntilMs: number };
 
 let liveInitialization: Promise<void> | null = null;
+let latestLiveMemory: LiveMemory | null = null;
+let lastCleanupAt = 0;
 
 function database(): D1Database | null {
   return (env as unknown as RuntimeEnv).DB ?? null;
@@ -45,6 +48,19 @@ export async function getLatestLiveRace(): Promise<LiveResponse> {
   const db = database();
   const serverNow = new Date().toISOString();
   if (!db) return { live: getDemoLiveRace(), demo: true, serverNow };
+
+  if (latestLiveMemory) {
+    const ageMs = Date.now() - Date.parse(latestLiveMemory.receivedAt);
+    const activeWindowMs = latestLiveMemory.live.status === "RUNNING" ? 15_000 : 120_000;
+    if (Date.now() <= latestLiveMemory.validUntilMs && Number.isFinite(ageMs) && ageMs <= activeWindowMs) {
+      return {
+        live: { ...latestLiveMemory.live, receivedAt: latestLiveMemory.receivedAt },
+        demo: false,
+        serverNow,
+      };
+    }
+    latestLiveMemory = null;
+  }
 
   await ensureLiveSchema(db);
   const row = await db.prepare(
@@ -76,6 +92,7 @@ export async function getLatestLiveRace(): Promise<LiveResponse> {
     };
     const ageMs = Date.now() - Date.parse(row.received_at);
     const activeWindowMs = live.status === "RUNNING" ? 15_000 : 120_000;
+    latestLiveMemory = { live, receivedAt: row.received_at, validUntilMs: Date.now() + 100 };
     return {
       live: Number.isFinite(ageMs) && ageMs <= activeWindowMs ? { ...live, receivedAt: row.received_at } : null,
       demo: false,
@@ -93,6 +110,10 @@ export async function upsertLiveRace(live: LiveRace): Promise<void> {
 
   const receivedAt = new Date().toISOString();
   const stored = { ...live, receivedAt };
+  // A POST and nearby GET usually share an isolate. Keep that authoritative
+  // ingest frame hot briefly, but expire quickly if routing shifts so another
+  // isolate's newer D1 write cannot be hidden behind stale process memory.
+  latestLiveMemory = { live, receivedAt, validUntilMs: Date.now() + 750 };
   await db.prepare(`INSERT INTO live_races (
     race_id, meet_id, status, category, round_name, event, server_job_id,
     captured_at, received_at, payload_json
@@ -105,5 +126,8 @@ export async function upsertLiveRace(live: LiveRace): Promise<void> {
     live.source.jobId, live.capturedAt, receivedAt, JSON.stringify(stored),
   ).run();
 
-  await db.prepare("DELETE FROM live_races WHERE received_at < datetime('now', '-1 day')").run();
+  if (live.status === "COMPLETE" && Date.now() - lastCleanupAt >= 60 * 60 * 1000) {
+    lastCleanupAt = Date.now();
+    await db.prepare("DELETE FROM live_races WHERE received_at < datetime('now', '-1 day')").run();
+  }
 }

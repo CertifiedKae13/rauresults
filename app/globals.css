@@ -138,6 +138,8 @@ main { margin: 0 auto; max-width: 1530px; padding: 0 clamp(18px, 4vw, 64px) 48px
 .finish-time-cell.official { color: #ffc65d !important; }
 .finish-time-cell.official small { color: #ffc65d; }
 .live-board-footer { color: #87a9bb; display: flex; font-size: 10px; justify-content: space-between; padding: 11px 18px; }
+.live-latency { color: #6ce8df; font-family: "SFMono-Regular", Consolas, monospace; font-variant-numeric: tabular-nums; font-weight: 900; }
+.live-latency.delayed { color: #ffc65d; }
 .live-board-idle { align-items: center; display: flex; justify-content: space-between; min-height: 150px; padding: 26px 30px; }
 .live-idle-clock { color: #406174; font-family: "SFMono-Regular", Consolas, monospace; font-size: clamp(38px, 5vw, 68px); font-weight: 900; }
 @keyframes live-pulse { 50% { opacity: .45; transform: scale(.8); } }

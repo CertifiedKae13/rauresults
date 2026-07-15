@@ -283,7 +283,7 @@ export function ResultsDashboard() {
         </section>
       </main>
 
-      <footer className="site-footer"><span>StrideSync Results Engine</span><span>Server authoritative · Live 0.5s · Results 12s</span></footer>
+      <footer className="site-footer"><span>StrideSync Results Engine</span><span>Server authoritative · Live 0.25s · Results 12s</span></footer>
     </div>
   );
 }

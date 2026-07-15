@@ -1,4 +1,5 @@
 import type { LiveEntrant, LiveRace } from "./live-types";
+import { orderLiveEntrants } from "./live-order";
 
 const teams = [
   ["UF", "Florida", "#FA4616"],
@@ -24,7 +25,7 @@ export function getDemoLiveRace(): LiveRace {
   const now = Date.now();
   const timerSeconds = 47.18;
   const distances = [400, 400, 400, 400, 397.4, 394.8, 390.2, 386.9];
-  const finishTimes = [44.92, 45.10, 45.44, 46.18] as const;
+  const finishTimes = [40.58, 40.68, 40.70, 39.45] as const;
   const entrants: LiveEntrant[] = names.map((name, index) => {
     const team = teams[index % teams.length];
     const split100 = 11.15 + index * 0.06;
@@ -46,7 +47,7 @@ export function getDemoLiveRace(): LiveRace {
       currentTime: (finishRawTime ?? timerSeconds).toFixed(2),
       finishRawTime,
       finishTime: finishRawTime === null ? null : finishRawTime.toFixed(2),
-      qualificationStatus: index < 3 ? "Q" : index === 3 ? "q" : null,
+      qualificationStatus: null,
       splits: [
         { distance: 100, label: "100m", time: split100.toFixed(2), rawTime: split100, position: index + 1 },
         { distance: 200, label: "200m", time: split200.toFixed(2), rawTime: split200, position: index + 1 },
@@ -66,8 +67,8 @@ export function getDemoLiveRace(): LiveRace {
     timerSeconds,
     timerRunning: true,
     checkpoints: [100, 200, 300],
-    bubbleTime: 46.18,
-    bubbleDisplayTime: "46.18",
+    bubbleTime: 40.70,
+    bubbleDisplayTime: "40.70",
     bubblePlace: 1,
     bubbleTarget: 6,
     bubbleProvisional: true,
@@ -84,6 +85,9 @@ export function getDemoLiveRace(): LiveRace {
       year: 2016,
     },
     source: { universeId: "demo", placeId: "demo", jobId: "demo" },
-    entrants,
+    entrants: orderLiveEntrants(entrants).map((entrant, index) => ({
+      ...entrant,
+      qualificationStatus: index < 3 ? "Q" : index === 3 ? "q" : null,
+    })),
   };
 }
