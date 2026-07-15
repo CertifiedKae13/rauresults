@@ -17,6 +17,8 @@ function raceRow(
   rawTime: number,
   gender: string,
   status = "",
+  section: number | null = null,
+  sectionPlace: number | null = null,
 ): ResultRow {
   const team = teams[teamAbbr];
   return {
@@ -25,8 +27,8 @@ function raceRow(
     time,
     rawTime,
     gap: rank === 1 ? 0 : Number((rawTime - 10.71).toFixed(2)),
-    section: null,
-    sectionPlace: null,
+    section,
+    sectionPlace,
     gender,
     team: team.name,
     teamAbbr,
@@ -137,14 +139,14 @@ export function getDemoReports(): ResultReport[] {
       capturedAt: new Date(now - 420_000).toISOString(),
       receivedAt: new Date(now - 418_000).toISOString(),
       results: [
-        raceRow(1, "Gabby Thomas", "21.91", "UT", 21.91, "Women", "Q"),
-        raceRow(2, "Brittany Brown", "22.04", "USC", 22.04, "Women", "Q"),
-        raceRow(3, "Favour Ofili", "22.11", "LSU", 22.11, "Women", "Q"),
-        raceRow(4, "Mujinga Kambundji", "22.23", "UO", 22.23, "Women", "Q"),
-        raceRow(5, "Dina Asher-Smith", "22.28", "UGA", 22.28, "Women", "Q"),
-        raceRow(6, "Twanisha Terry", "22.33", "UF", 22.33, "Women", "Q"),
-        raceRow(7, "Marie-Josee Ta Lou", "22.41", "USC", 22.41, "Women", "Q"),
-        raceRow(8, "Shericka Jackson", "22.47", "LSU", 22.47, "Women", "Q"),
+        raceRow(1, "Gabby Thomas", "21.91", "UT", 21.91, "Women", "Q", 4, 1),
+        raceRow(2, "Brittany Brown", "22.04", "USC", 22.04, "Women", "Q", 2, 1),
+        raceRow(3, "Favour Ofili", "22.11", "LSU", 22.11, "Women", "Q", 1, 1),
+        raceRow(4, "Mujinga Kambundji", "22.23", "UO", 22.23, "Women", "Q", 3, 1),
+        raceRow(5, "Dina Asher-Smith", "22.28", "UGA", 22.28, "Women", "Q", 4, 2),
+        raceRow(6, "Twanisha Terry", "22.33", "UF", 22.33, "Women", "Q", 2, 2),
+        raceRow(7, "Marie-Josee Ta Lou", "22.41", "USC", 22.41, "Women", "Q", 1, 2),
+        raceRow(8, "Shericka Jackson", "22.47", "LSU", 22.47, "Women", "Q", 3, 2),
       ],
     },
     {

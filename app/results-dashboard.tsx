@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ResultRow, ResultsResponse } from "../lib/result-types";
 
@@ -25,10 +26,25 @@ function readableTime(value?: string): string {
     : parsed.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
 }
 
-function TeamMark({ row }: { row: ResultRow }) {
+const TEAM_LOGOS: Record<string, string> = {
+  UF: "/team-logos/florida.svg",
+  UT: "/team-logos/texas.svg",
+  USC: "/team-logos/usc.svg",
+  LSU: "/team-logos/lsu.svg",
+  UO: "/team-logos/oregon.svg",
+  UGA: "/team-logos/georgia.svg",
+};
+
+function TeamLogo({ row, standings = false }: { row: ResultRow; standings?: boolean }) {
+  const logo = TEAM_LOGOS[row.teamAbbr.toUpperCase()];
+
+  if (!logo) {
+    return <span className="team-logo-fallback" style={{ "--team-color": row.teamColor } as React.CSSProperties}>{row.teamAbbr.slice(0, 3)}</span>;
+  }
+
   return (
-    <span className="team-mark" style={{ "--team-color": row.teamColor } as React.CSSProperties} aria-hidden="true">
-      {row.teamAbbr.slice(0, 3)}
+    <span className={`team-logo${standings ? " team-logo-standings" : ""}`} title={row.team}>
+      <Image src={logo} alt={`${row.team} logo`} width={standings ? 48 : 44} height={standings ? 48 : 38} />
     </span>
   );
 }
@@ -215,10 +231,10 @@ export function ResultsDashboard() {
                       {selectedReport.results.map((row) => (
                         <tr key={`${row.rank}-${row.name}`}>
                           <td className="place-cell"><span className={row.rank <= 3 ? `medal-place place-${row.rank}` : ""}>{row.rank}</span></td>
-                          <td><strong>{row.name}</strong><span className="mobile-subline">{row.team}</span></td>
-                          <td><div className="team-cell"><TeamMark row={row} /><span>{row.team}</span></div></td>
+                          <td><strong>{row.name}</strong></td>
+                          <td><div className="team-cell"><TeamLogo row={row} /></div></td>
                           <td className="time-cell">{row.time}</td>
-                          <td>{row.section ? `${row.section} (${row.sectionPlace ?? "—"})` : "—"}</td>
+                          <td className="section-cell">{row.section ? `${row.section}(${row.sectionPlace ?? "—"})` : "—"}</td>
                           <td>{selectedReport.isFinal ? (row.points ?? "—") : (row.gap ? `+${row.gap.toFixed(2)}` : "—")}</td>
                           <td>{row.status && <span className={`result-status ${row.status === "Q" || row.status === "q" ? "qualified" : ""}`}>{row.status}</span>}</td>
                         </tr>
@@ -237,8 +253,7 @@ export function ResultsDashboard() {
               {standings.slice(0, 8).map((row) => (
                 <li key={`${row.rank}-${row.team}`}>
                   <span className="standing-rank">{row.rank}</span>
-                  <TeamMark row={row} />
-                  <span className="standing-team"><strong>{row.team}</strong><small>{row.teamAbbr}</small></span>
+                  <TeamLogo row={row} standings />
                   <strong className="standing-points">{row.points ?? 0}<small>PTS</small></strong>
                 </li>
               ))}
