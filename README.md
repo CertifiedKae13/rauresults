@@ -36,6 +36,25 @@ npm test
 
 `npm test` builds the production bundle, starts an isolated local runtime, checks the rendered dashboard, verifies the demo API response, and verifies that unsigned ingest requests are rejected.
 
+## Free Cloudflare Pages address
+
+The project can be published as `https://rauresults.pages.dev` on a free
+Cloudflare account. This project is a full server-rendered dashboard: its
+`/api/live` and `/api/results` endpoints, D1 database, and private
+`RESULTS_INGEST_TOKEN` must all be configured in the Pages project.
+
+1. Push this project to GitHub, then create a **Pages** project named
+   `rauresults` in Cloudflare from that repository. Set the build command to
+   `npm run build:pages` and the output directory to `dist/client`. The
+   prepared `_worker.js` keeps the dashboard API running alongside the site
+   assets.
+2. In **Settings → Bindings**, create a D1 binding named `DB` and select a new
+   D1 database. In **Settings → Variables and Secrets**, add
+   `RESULTS_INGEST_TOKEN` as a secret.
+3. Redeploy, then set the Roblox reporter URL to
+   `https://rauresults.pages.dev/api/live` and
+   `https://rauresults.pages.dev/api/results`.
+
 ## Database
 
 The D1 binding is `DB`. The runtime creates the table and indexes if necessary, while the generated Drizzle migration in `drizzle/` is included in hosted deployments.
