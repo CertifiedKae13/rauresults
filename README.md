@@ -13,7 +13,7 @@ AIMeetSystem
   -> responsive event index, result table, and team standings
 ```
 
-The ingest route is idempotent on `reportId`. Each body is capped at 128 KB, each presentation is capped at 64 rows, and each Roblox job can store at most 120 new reports per minute.
+The ingest route is idempotent on `reportId`. It accepts the ingest credential in `X-Results-Token` (or standard bearer authorization on hosts without an authentication gateway). Each body is capped at 128 KB, each presentation is capped at 64 rows, and each Roblox job can store at most 120 new reports per minute.
 
 ## Local development
 

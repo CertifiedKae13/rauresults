@@ -126,7 +126,9 @@ export async function POST(request: Request) {
   }
 
   const authorization = request.headers.get("authorization") ?? "";
-  const providedToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+  const providedToken =
+    request.headers.get("x-results-token") ??
+    (authorization.startsWith("Bearer ") ? authorization.slice(7) : "");
   if (!providedToken || !secureEqual(providedToken, expectedToken)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
