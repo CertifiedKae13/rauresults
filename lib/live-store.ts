@@ -56,6 +56,12 @@ export async function getLatestLiveRace(): Promise<LiveResponse> {
     const parsed = JSON.parse(row.payload_json) as LiveRace;
     const live: LiveRace = {
       ...parsed,
+      bubbleTime: typeof parsed.bubbleTime === "number" ? parsed.bubbleTime : null,
+      bubbleDisplayTime: parsed.bubbleDisplayTime || null,
+      bubblePlace: typeof parsed.bubblePlace === "number" ? parsed.bubblePlace : null,
+      bubbleTarget: typeof parsed.bubbleTarget === "number" ? parsed.bubbleTarget : null,
+      bubbleProvisional: parsed.bubbleProvisional === true,
+      qualificationRule: parsed.qualificationRule || "",
       entrants: (Array.isArray(parsed.entrants) ? parsed.entrants : []).map((entrant) => ({
         ...entrant,
         splits: Array.isArray(entrant.splits) ? entrant.splits : [],
@@ -63,6 +69,9 @@ export async function getLatestLiveRace(): Promise<LiveResponse> {
         currentTime: entrant.currentTime || parsed.timerSeconds.toFixed(2),
         finishRawTime: typeof entrant.finishRawTime === "number" ? entrant.finishRawTime : null,
         finishTime: entrant.finishTime || null,
+        qualificationStatus: entrant.qualificationStatus === "Q" || entrant.qualificationStatus === "q"
+          ? entrant.qualificationStatus
+          : null,
       })),
     };
     const ageMs = Date.now() - Date.parse(row.received_at);

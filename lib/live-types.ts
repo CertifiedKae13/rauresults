@@ -26,6 +26,7 @@ export type LiveEntrant = {
   currentTime: string;
   finishRawTime: number | null;
   finishTime: string | null;
+  qualificationStatus: "Q" | "q" | null;
   splits: SplitTime[];
 };
 
@@ -41,6 +42,12 @@ export type LiveRace = {
   timerSeconds: number;
   timerRunning: boolean;
   checkpoints: number[];
+  bubbleTime: number | null;
+  bubbleDisplayTime: string | null;
+  bubblePlace: number | null;
+  bubbleTarget: number | null;
+  bubbleProvisional: boolean;
+  qualificationRule: string;
   capturedAt: string;
   capturedAtUnix: number;
   receivedAt?: string;

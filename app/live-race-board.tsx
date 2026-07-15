@@ -22,20 +22,6 @@ function formatTimer(seconds: number): string {
     : remaining.toFixed(2).padStart(5, "0");
 }
 
-function lastSplit(entrant: LiveEntrant): string {
-  const split = (entrant.splits ?? []).at(-1);
-  if (!split) return "—";
-  return `${split.label}  ${split.time}${split.position ? `  (${split.position})` : ""}`;
-}
-
-function sectorLabel(distance: number, checkpoints: number[], eventDistance: number): string {
-  if (distance >= eventDistance) return "Finished";
-  const marks = [...checkpoints.filter((mark) => mark > 0 && mark < eventDistance), eventDistance];
-  const upper = marks.find((mark) => distance < mark) ?? eventDistance;
-  const lower = [...marks].reverse().find((mark) => mark <= distance) ?? 0;
-  return `${lower}–${upper}m`;
-}
-
 function LiveTeamLogo({ entrant }: { entrant: LiveEntrant }) {
   const logo = TEAM_LOGOS[entrant.teamAbbr.toUpperCase()];
   if (logo) {
@@ -98,6 +84,8 @@ export function LiveRaceBoard() {
     );
   }
 
+  const bubbleTime = live.bubbleDisplayTime ?? (live.bubbleTime === null ? "—" : formatTimer(live.bubbleTime));
+
   return (
     <section className="live-board" id="live" aria-labelledby="live-title">
       <div className="live-board-head">
@@ -110,35 +98,49 @@ export function LiveRaceBoard() {
           <span>RACE CLOCK</span>
           <strong aria-hidden="true">{formatTimer(displayTimer)}</strong>
         </div>
-        <div className="record-card">
-          <span>{live.worldRecord?.label ?? "World record"}</span>
-          <strong>{live.worldRecord?.time ?? "—"}</strong>
-          <small>{live.worldRecord ? `${live.worldRecord.athlete} · ${live.worldRecord.country} ${live.worldRecord.year}` : "Record unavailable"}</small>
+        <div className="live-reference-stack">
+          <div className="record-card">
+            <span>{live.worldRecord?.label ?? "World record"}</span>
+            <strong>{live.worldRecord?.time ?? "—"}</strong>
+            <small>{live.worldRecord ? `${live.worldRecord.athlete} · ${live.worldRecord.country} ${live.worldRecord.year}` : "Record unavailable"}</small>
+          </div>
+          <div className="bubble-card">
+            <span>{live.bubbleProvisional ? "PROVISIONAL BUBBLE" : "QUALIFYING BUBBLE"}</span>
+            <strong>{bubbleTime}</strong>
+            <small>{live.qualificationRule || "No qualifying cutoff for this race"}</small>
+          </div>
         </div>
       </div>
 
       <div className="live-table-scroll">
         <table className="live-table">
           <thead>
-            <tr><th>Live</th><th>Lane</th><th>Athlete</th><th>Team</th><th>Track sector</th><th>Distance</th><th>Time</th><th>Latest split</th></tr>
+            <tr><th>Live</th><th>Lane</th><th>Athlete</th><th>Team</th><th>Distance</th><th>Time</th><th>Finished time</th></tr>
           </thead>
           <tbody>
             {live.entrants.map((entrant) => (
               <tr key={`${entrant.lane}-${entrant.name}`} className={entrant.rank === 1 ? "live-leader" : ""}>
                 <td><span className="live-rank">{entrant.rank}</span></td>
                 <td className="live-lane">{entrant.lane || "—"}</td>
-                <td><strong>{entrant.name}</strong>{entrant.rank === 1 && <small className="leader-label">Leader</small>}</td>
-                <td><span className="live-team"><LiveTeamLogo entrant={entrant} /><small>{entrant.teamAbbr}</small></span></td>
                 <td>
-                  <span className="sector-copy">{sectorLabel(entrant.distanceMeters, live.checkpoints, live.eventDistance)}</span>
-                  <span className="progress-track" aria-hidden="true"><i style={{ width: `${entrant.progress * 100}%` }} /></span>
+                  <strong>{entrant.name}</strong>
+                  {entrant.qualificationStatus && (
+                    <small className={`qualification-label qualification-${entrant.qualificationStatus === "q" ? "time" : "auto"}`}>
+                      {entrant.qualificationStatus}
+                    </small>
+                  )}
+                  {entrant.rank === 1 && <small className="leader-label">Leader</small>}
                 </td>
+                <td><span className="live-team"><LiveTeamLogo entrant={entrant} /><small>{entrant.teamAbbr}</small></span></td>
                 <td className="distance-cell">{entrant.distanceMeters.toFixed(1)}m</td>
-                <td className={`live-time-cell${entrant.finishTime ? " official" : ""}`}>
-                  {entrant.finishTime ?? (live.timerRunning ? formatTimer(displayTimer) : entrant.currentTime)}
-                  <small>{entrant.finishTime ? "OFFICIAL" : "LIVE"}</small>
+                <td className="live-time-cell">
+                  {formatTimer(displayTimer)}
+                  <small>{live.timerRunning ? "LIVE" : "FINAL CLOCK"}</small>
                 </td>
-                <td className="split-cell">{lastSplit(entrant)}</td>
+                <td className={`finish-time-cell${entrant.finishTime ? " official" : ""}`}>
+                  {entrant.finishTime ?? "—"}
+                  <small>{entrant.finishTime ? "OFFICIAL" : "RACING"}</small>
+                </td>
               </tr>
             ))}
           </tbody>

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
 
 const port = 3400 + (process.pid % 400);
@@ -57,7 +58,7 @@ test("GET /api/results returns the safe demo feed when storage is empty", async 
   assert.ok(payload.reports[0].results[0].splits.length > 0);
 });
 
-test("GET /api/live returns an ordered demo race with timer, record, and splits", async () => {
+test("GET /api/live returns an ordered demo race with timer, bubble, qualifications, and finish times", async () => {
   const response = await fetch(`${origin}/api/live`);
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("cache-control"), "no-store, max-age=0");
@@ -66,11 +67,26 @@ test("GET /api/live returns an ordered demo race with timer, record, and splits"
   assert.equal(payload.live.status, "RUNNING");
   assert.ok(payload.live.timerSeconds > 0);
   assert.equal(payload.live.worldRecord.label, "400M WR");
+  assert.equal(payload.live.bubbleDisplayTime, "46.18");
+  assert.equal(payload.live.bubbleTarget, 6);
+  assert.equal(payload.live.bubbleProvisional, true);
+  assert.match(payload.live.qualificationRule, /TOP 3.*6 FASTEST/);
   assert.equal(payload.live.entrants.length, 8);
-  assert.ok(payload.live.entrants[0].progress > payload.live.entrants[1].progress);
+  assert.equal(payload.live.entrants[0].finishPlace, 1);
+  assert.equal(payload.live.entrants[0].qualificationStatus, "Q");
+  assert.equal(payload.live.entrants[3].qualificationStatus, "q");
+  assert.match(payload.live.entrants[0].finishTime, /^\d/);
   assert.ok(payload.live.entrants[0].splits.length >= 2);
   assert.ok(payload.live.entrants[0].currentRawTime > 0);
   assert.match(payload.live.entrants[0].currentTime, /^\d/);
+});
+
+test("live board exposes finished time and removes the track-sector and latest-split columns", async () => {
+  const source = await readFile(new URL("../app/live-race-board.tsx", import.meta.url), "utf8");
+  assert.match(source, /<th>Finished time<\/th>/);
+  assert.match(source, /PROVISIONAL BUBBLE/);
+  assert.doesNotMatch(source, /<th>Track sector<\/th>/);
+  assert.doesNotMatch(source, /<th>Latest split<\/th>/);
 });
 
 test("POST /api/results rejects unauthenticated requests", async () => {

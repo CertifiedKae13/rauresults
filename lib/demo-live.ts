@@ -22,12 +22,14 @@ const names = [
 
 export function getDemoLiveRace(): LiveRace {
   const now = Date.now();
-  const timerSeconds = 27.34;
-  const distances = [251.4, 248.8, 244.2, 238.5, 232.7, 227.1, 219.8, 212.6];
+  const timerSeconds = 47.18;
+  const distances = [400, 400, 400, 400, 397.4, 394.8, 390.2, 386.9];
+  const finishTimes = [44.92, 45.10, 45.44, 46.18] as const;
   const entrants: LiveEntrant[] = names.map((name, index) => {
     const team = teams[index % teams.length];
     const split100 = 11.15 + index * 0.06;
     const split200 = 22.34 + index * 0.1;
+    const finishRawTime = finishTimes[index] ?? null;
     return {
       rank: index + 1,
       name,
@@ -38,12 +40,13 @@ export function getDemoLiveRace(): LiveRace {
       teamColor: team[2],
       distanceMeters: distances[index],
       progress: distances[index] / 400,
-      state: "Running",
-      finishPlace: null,
-      currentRawTime: timerSeconds,
-      currentTime: timerSeconds.toFixed(2),
-      finishRawTime: null,
-      finishTime: null,
+      state: finishRawTime === null ? "Running" : "Finished",
+      finishPlace: finishRawTime === null ? null : index + 1,
+      currentRawTime: finishRawTime ?? timerSeconds,
+      currentTime: (finishRawTime ?? timerSeconds).toFixed(2),
+      finishRawTime,
+      finishTime: finishRawTime === null ? null : finishRawTime.toFixed(2),
+      qualificationStatus: index < 3 ? "Q" : index === 3 ? "q" : null,
       splits: [
         { distance: 100, label: "100m", time: split100.toFixed(2), rawTime: split100, position: index + 1 },
         { distance: 200, label: "200m", time: split200.toFixed(2), rawTime: split200, position: index + 1 },
@@ -63,6 +66,12 @@ export function getDemoLiveRace(): LiveRace {
     timerSeconds,
     timerRunning: true,
     checkpoints: [100, 200, 300],
+    bubbleTime: 46.18,
+    bubbleDisplayTime: "46.18",
+    bubblePlace: 1,
+    bubbleTarget: 6,
+    bubbleProvisional: true,
+    qualificationRule: "TOP 3 EACH HEAT + 6 FASTEST",
     capturedAt: new Date(now).toISOString(),
     capturedAtUnix: now / 1000,
     worldRecord: {

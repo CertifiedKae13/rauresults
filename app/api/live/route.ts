@@ -31,6 +31,10 @@ function color(value: unknown): string {
   return /^#[0-9A-Fa-f]{6}$/.test(candidate) ? candidate.toUpperCase() : "#64748B";
 }
 
+function qualificationStatus(value: unknown): "Q" | "q" | null {
+  return value === "Q" || value === "q" ? value : null;
+}
+
 function normalizeSplits(value: unknown): SplitTime[] {
   if (!Array.isArray(value)) return [];
   return value.slice(0, 8).flatMap((candidate) => {
@@ -72,6 +76,7 @@ function normalizeEntrants(value: unknown, eventDistance: number): LiveEntrant[]
       currentTime: shortString(valueFrom(input, "currentTime", "CurrentTime"), "--", 24),
       finishRawTime: finiteNumber(valueFrom(input, "finishRawTime", "FinishRawTime")),
       finishTime: shortString(valueFrom(input, "finishTime", "FinishTime"), "", 24) || null,
+      qualificationStatus: qualificationStatus(valueFrom(input, "qualificationStatus", "QualificationStatus")),
       splits: normalizeSplits(valueFrom(input, "splits", "Splits")),
     } satisfies LiveEntrant;
   });
@@ -119,6 +124,10 @@ function normalizeLiveRace(value: unknown): LiveRace | null {
         return distance !== null && distance > 0 && distance < eventDistance ? [Math.floor(distance)] : [];
       }).slice(0, 8).sort((left, right) => left - right)
     : [];
+  const bubbleTimeInput = finiteNumber(input.bubbleTime);
+  const bubbleTime = bubbleTimeInput !== null && bubbleTimeInput > 0 ? Math.min(86_400, bubbleTimeInput) : null;
+  const bubblePlaceInput = finiteNumber(input.bubblePlace);
+  const bubbleTargetInput = finiteNumber(input.bubbleTarget);
 
   return {
     schemaVersion: 1,
@@ -132,6 +141,12 @@ function normalizeLiveRace(value: unknown): LiveRace | null {
     timerSeconds: Math.max(0, Math.min(86_400, finiteNumber(input.timerSeconds) ?? 0)),
     timerRunning: input.timerRunning === true && input.status !== "COMPLETE",
     checkpoints,
+    bubbleTime,
+    bubbleDisplayTime: shortString(input.bubbleDisplayTime, bubbleTime === null ? "" : bubbleTime.toFixed(2), 24) || null,
+    bubblePlace: bubblePlaceInput === null ? null : Math.max(0, Math.min(99, Math.floor(bubblePlaceInput))),
+    bubbleTarget: bubbleTargetInput === null ? null : Math.max(1, Math.min(99, Math.floor(bubbleTargetInput))),
+    bubbleProvisional: input.bubbleProvisional === true,
+    qualificationRule: shortString(input.qualificationRule, "", 80),
     capturedAt,
     capturedAtUnix,
     worldRecord: normalizeWorldRecord(input.worldRecord),
