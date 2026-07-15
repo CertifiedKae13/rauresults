@@ -24,7 +24,9 @@ function runtimeEnv(): RuntimeEnv {
 }
 
 export function getIngestToken(): string {
-  const configured = runtimeEnv().RESULTS_INGEST_TOKEN?.trim();
+  const configured =
+    runtimeEnv().RESULTS_INGEST_TOKEN?.trim() ||
+    process.env.RESULTS_INGEST_TOKEN?.trim();
   if (configured) return configured;
   return process.env.NODE_ENV === "development" ? "local-development-token" : "";
 }
