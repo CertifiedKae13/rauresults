@@ -7,8 +7,15 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
   openGraph: {
     title: "StrideSync Live Results",
-    description: "Server-authoritative Roblox AI track meet results, live on the web.",
+    description: "Server-authoritative Roblox AI track timing, live order, splits, records, and final results.",
     type: "website",
+    images: [{ url: "/stridesync-live-og.png", width: 1200, height: 630, alt: "StrideSync live AI track results" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "StrideSync Live Results",
+    description: "Live Roblox AI race timing, lane-aware order, checkpoint splits, and final results.",
+    images: ["/stridesync-live-og.png"],
   },
 };
 

@@ -5,7 +5,7 @@ import {
   listReports,
   reportsFromJobInLastMinute,
 } from "../../../lib/results-store";
-import type { ResultReport, ResultRow } from "../../../lib/result-types";
+import type { ResultReport, ResultRow, SplitTime } from "../../../lib/result-types";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +33,25 @@ function finiteNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function normalizeSplits(value: unknown): SplitTime[] {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 8).flatMap((candidate) => {
+    const input = record(candidate);
+    const distance = finiteNumber(valueFrom(input, "distance", "Distance"));
+    const rawTime = finiteNumber(valueFrom(input, "rawTime", "RawTime"));
+    if (distance === null || rawTime === null || distance <= 0 || rawTime < 0) return [];
+    const position = finiteNumber(valueFrom(input, "position", "Position"));
+    const roundedDistance = Math.min(1600, Math.floor(distance));
+    return [{
+      distance: roundedDistance,
+      label: shortString(valueFrom(input, "label", "Label"), `${roundedDistance}m`, 16),
+      time: shortString(valueFrom(input, "time", "Time"), rawTime.toFixed(2), 24),
+      rawTime,
+      position: position === null ? null : Math.max(1, Math.min(99, Math.floor(position))),
+    }];
+  }).sort((left, right) => left.distance - right.distance);
+}
+
 function normalizeRow(value: unknown, fallbackRank: number): ResultRow {
   const input = record(value);
   const rank = finiteNumber(valueFrom(input, "rank", "Rank"));
@@ -47,6 +66,7 @@ function normalizeRow(value: unknown, fallbackRank: number): ResultRow {
     name: shortString(valueFrom(input, "name", "Name"), "Unknown athlete", 80),
     time: shortString(valueFrom(input, "time", "Time"), "--", 24),
     rawTime,
+    splits: normalizeSplits(valueFrom(input, "splits", "Splits")),
     gap,
     section: section === null ? null : Math.max(1, Math.min(99, Math.floor(section))),
     sectionPlace: sectionPlace === null ? null : Math.max(1, Math.min(99, Math.floor(sectionPlace))),

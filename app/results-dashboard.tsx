@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ResultRow, ResultsResponse } from "../lib/result-types";
+import { LiveRaceBoard } from "./live-race-board";
 
 const EVENT_ORDER = ["100M", "110H", "200M", "300M", "400M", "400H"];
 
@@ -114,6 +115,13 @@ export function ResultsDashboard() {
     const report = data?.reports.find((candidate) => candidate.kind === "TeamStandings");
     return report?.results.length ? report.results : (selectedReport?.standings ?? []);
   }, [data, selectedReport]);
+  const splitColumns = useMemo(() => {
+    const distances = new Set<number>();
+    for (const row of selectedReport?.results ?? []) {
+      for (const split of row.splits) distances.add(split.distance);
+    }
+    return Array.from(distances).sort((left, right) => left - right);
+  }, [selectedReport]);
 
   function chooseFilter(filter: string) {
     setEventFilter(filter);
@@ -144,6 +152,7 @@ export function ResultsDashboard() {
           </span>
         </a>
         <nav aria-label="Primary navigation">
+          <a href="#live">Live Race</a>
           <a href="#events">Event Index</a>
           <a href="#results">Results</a>
           <a href="#standings">Team Standings</a>
@@ -170,6 +179,8 @@ export function ResultsDashboard() {
           </div>
         )}
         {error && <div className="error-banner" role="alert">{error}</div>}
+
+        <LiveRaceBoard />
 
         <section className="event-controls" id="events" aria-label="Event filters">
           <div className="filter-row">
@@ -226,13 +237,17 @@ export function ResultsDashboard() {
                 </div>
                 <div className="table-scroll">
                   <table className="results-table">
-                    <thead><tr><th>Pl</th><th>Athlete</th><th>Team</th><th>Time</th><th>{sectionHeading}</th><th>{selectedReport.isFinal ? "Pts" : "Gap"}</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Pl</th><th>Athlete</th><th>Team</th>{splitColumns.map((distance) => <th key={distance}>{distance}m split</th>)}<th>Time</th><th>{sectionHeading}</th><th>{selectedReport.isFinal ? "Pts" : "Gap"}</th><th>Status</th></tr></thead>
                     <tbody>
                       {selectedReport.results.map((row) => (
                         <tr key={`${row.rank}-${row.name}`}>
                           <td className="place-cell"><span className={row.rank <= 3 ? `medal-place place-${row.rank}` : ""}>{row.rank}</span></td>
                           <td><strong>{row.name}</strong></td>
                           <td><div className="team-cell"><TeamLogo row={row} /></div></td>
+                          {splitColumns.map((distance) => {
+                            const split = row.splits.find((candidate) => candidate.distance === distance);
+                            return <td key={distance} className="split-time-cell">{split ? <>{split.time}<small>{split.position ? `(${split.position})` : ""}</small></> : "—"}</td>;
+                          })}
                           <td className="time-cell">{row.time}</td>
                           <td className="section-cell">{row.section ? `${row.section}(${row.sectionPlace ?? "—"})` : "—"}</td>
                           <td>{selectedReport.isFinal ? (row.points ?? "—") : (row.gap ? `+${row.gap.toFixed(2)}` : "—")}</td>
@@ -263,12 +278,12 @@ export function ResultsDashboard() {
 
         <section className="connection-card" id="connection" aria-labelledby="connection-title">
           <div className="connection-icon" aria-hidden="true"><span>R</span><i /></div>
-          <div><p className="eyebrow">ROBLOX CONNECTION</p><h2 id="connection-title">Built for your existing AIMeetSystem</h2><p>The server-only reporter reuses the exact results payload your Qualifiers UI already produces. It queues reports, retries temporary failures, and never exposes the API token to clients.</p></div>
-          <div className="connection-meta"><span><i className="mini-dot" /> Ingest endpoint ready</span><code>POST /api/results</code></div>
+          <div><p className="eyebrow">ROBLOX CONNECTION</p><h2 id="connection-title">Built for your existing AIMeetSystem</h2><p>The server-only reporter publishes coalesced live snapshots and final reports. Tokens remain server-only, while curved-lane progress and checkpoint splits come straight from the authoritative AI controller.</p></div>
+          <div className="connection-meta"><span><i className="mini-dot" /> Ingest endpoints ready</span><code>POST /api/live</code><code>POST /api/results</code></div>
         </section>
       </main>
 
-      <footer className="site-footer"><span>StrideSync Results Engine</span><span>Server authoritative · Automatic refresh every 12 seconds</span></footer>
+      <footer className="site-footer"><span>StrideSync Results Engine</span><span>Server authoritative · Live 2s · Results 12s</span></footer>
     </div>
   );
 }

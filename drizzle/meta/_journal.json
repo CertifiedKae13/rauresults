@@ -8,6 +8,13 @@
       "when": 1784080740224,
       "tag": "0000_familiar_crusher_hogan",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1784095005148,
+      "tag": "0001_daily_stature",
+      "breakpoints": true
     }
   ]
 }

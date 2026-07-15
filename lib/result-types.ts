@@ -1,8 +1,17 @@
+export type SplitTime = {
+  distance: number;
+  label: string;
+  time: string;
+  rawTime: number;
+  position: number | null;
+};
+
 export type ResultRow = {
   rank: number;
   name: string;
   time: string;
   rawTime: number | null;
+  splits: SplitTime[];
   gap: number | null;
   section: number | null;
   sectionPlace: number | null;

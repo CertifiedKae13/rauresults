@@ -37,8 +37,10 @@ test("server-renders the StrideSync results board", async () => {
   const html = await response.text();
   assert.match(html, /<title>StrideSync Live Results<\/title>/i);
   assert.match(html, /AI Championship Results Center/);
+  assert.match(html, /Live Race/);
   assert.match(html, /Event Index/);
   assert.match(html, /Team standings/);
+  assert.match(html, /POST \/api\/live/);
   assert.match(html, /POST \/api\/results/);
 });
 
@@ -51,10 +53,35 @@ test("GET /api/results returns the safe demo feed when storage is empty", async 
   assert.ok(payload.reports.length >= 3);
   assert.equal(payload.reports[0].kind, "RaceResults");
   assert.ok(payload.reports[0].results.length > 0);
+  assert.ok(payload.reports[0].results[0].splits.length > 0);
+});
+
+test("GET /api/live returns an ordered demo race with timer, record, and splits", async () => {
+  const response = await fetch(`${origin}/api/live`);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "no-store, max-age=0");
+  const payload = await response.json();
+  assert.equal(payload.demo, true);
+  assert.equal(payload.live.status, "RUNNING");
+  assert.ok(payload.live.timerSeconds > 0);
+  assert.equal(payload.live.worldRecord.label, "400M WR");
+  assert.equal(payload.live.entrants.length, 8);
+  assert.ok(payload.live.entrants[0].progress > payload.live.entrants[1].progress);
+  assert.ok(payload.live.entrants[0].splits.length >= 2);
 });
 
 test("POST /api/results rejects unauthenticated requests", async () => {
   const response = await fetch(`${origin}/api/results`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: "{}",
+  });
+  assert.equal(response.status, 401);
+  assert.deepEqual(await response.json(), { error: "Unauthorized" });
+});
+
+test("POST /api/live rejects unauthenticated requests", async () => {
+  const response = await fetch(`${origin}/api/live`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: "{}",

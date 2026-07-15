@@ -1,4 +1,4 @@
-import type { ResultReport, ResultRow } from "./result-types";
+import type { ResultReport, ResultRow, SplitTime } from "./result-types";
 
 const teams = {
   UF: { name: "Florida", color: "#FA4616" },
@@ -19,13 +19,23 @@ function raceRow(
   status = "",
   section: number | null = null,
   sectionPlace: number | null = null,
+  splitDistance = 60,
 ): ResultRow {
   const team = teams[teamAbbr];
+  const splitRaw = Number((rawTime * (splitDistance === 60 ? 0.57 : 0.49)).toFixed(2));
+  const splits: SplitTime[] = [{
+    distance: splitDistance,
+    label: `${splitDistance}m`,
+    time: splitRaw.toFixed(2),
+    rawTime: splitRaw,
+    position: rank,
+  }];
   return {
     rank,
     name,
     time,
     rawTime,
+    splits,
     gap: rank === 1 ? 0 : Number((rawTime - 10.71).toFixed(2)),
     section,
     sectionPlace,
@@ -47,6 +57,7 @@ function standingRow(rank: number, teamAbbr: keyof typeof teams, points: number)
     name: team.name,
     time: "",
     rawTime: null,
+    splits: [],
     gap: null,
     section: null,
     sectionPlace: null,
@@ -139,14 +150,14 @@ export function getDemoReports(): ResultReport[] {
       capturedAt: new Date(now - 420_000).toISOString(),
       receivedAt: new Date(now - 418_000).toISOString(),
       results: [
-        raceRow(1, "Gabby Thomas", "21.91", "UT", 21.91, "Women", "Q", 4, 1),
-        raceRow(2, "Brittany Brown", "22.04", "USC", 22.04, "Women", "Q", 2, 1),
-        raceRow(3, "Favour Ofili", "22.11", "LSU", 22.11, "Women", "Q", 1, 1),
-        raceRow(4, "Mujinga Kambundji", "22.23", "UO", 22.23, "Women", "Q", 3, 1),
-        raceRow(5, "Dina Asher-Smith", "22.28", "UGA", 22.28, "Women", "Q", 4, 2),
-        raceRow(6, "Twanisha Terry", "22.33", "UF", 22.33, "Women", "Q", 2, 2),
-        raceRow(7, "Marie-Josee Ta Lou", "22.41", "USC", 22.41, "Women", "Q", 1, 2),
-        raceRow(8, "Shericka Jackson", "22.47", "LSU", 22.47, "Women", "Q", 3, 2),
+        raceRow(1, "Gabby Thomas", "21.91", "UT", 21.91, "Women", "Q", 4, 1, 100),
+        raceRow(2, "Brittany Brown", "22.04", "USC", 22.04, "Women", "Q", 2, 1, 100),
+        raceRow(3, "Favour Ofili", "22.11", "LSU", 22.11, "Women", "Q", 1, 1, 100),
+        raceRow(4, "Mujinga Kambundji", "22.23", "UO", 22.23, "Women", "Q", 3, 1, 100),
+        raceRow(5, "Dina Asher-Smith", "22.28", "UGA", 22.28, "Women", "Q", 4, 2, 100),
+        raceRow(6, "Twanisha Terry", "22.33", "UF", 22.33, "Women", "Q", 2, 2, 100),
+        raceRow(7, "Marie-Josee Ta Lou", "22.41", "USC", 22.41, "Women", "Q", 1, 2, 100),
+        raceRow(8, "Shericka Jackson", "22.47", "LSU", 22.47, "Women", "Q", 3, 2, 100),
       ],
     },
     {
