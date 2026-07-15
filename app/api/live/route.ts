@@ -68,6 +68,10 @@ function normalizeEntrants(value: unknown, eventDistance: number): LiveEntrant[]
       progress,
       state: shortString(valueFrom(input, "state", "State"), "Staged", 20),
       finishPlace: finishPlace === null ? null : Math.max(1, Math.min(99, Math.floor(finishPlace))),
+      currentRawTime: finiteNumber(valueFrom(input, "currentRawTime", "CurrentRawTime")),
+      currentTime: shortString(valueFrom(input, "currentTime", "CurrentTime"), "--", 24),
+      finishRawTime: finiteNumber(valueFrom(input, "finishRawTime", "FinishRawTime")),
+      finishTime: shortString(valueFrom(input, "finishTime", "FinishTime"), "", 24) || null,
       splits: normalizeSplits(valueFrom(input, "splits", "Splits")),
     } satisfies LiveEntrant;
   });

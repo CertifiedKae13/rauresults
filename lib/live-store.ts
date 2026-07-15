@@ -53,7 +53,18 @@ export async function getLatestLiveRace(): Promise<LiveResponse> {
   if (!row) return { live: getDemoLiveRace(), demo: true, serverNow };
 
   try {
-    const live = JSON.parse(row.payload_json) as LiveRace;
+    const parsed = JSON.parse(row.payload_json) as LiveRace;
+    const live: LiveRace = {
+      ...parsed,
+      entrants: (Array.isArray(parsed.entrants) ? parsed.entrants : []).map((entrant) => ({
+        ...entrant,
+        splits: Array.isArray(entrant.splits) ? entrant.splits : [],
+        currentRawTime: typeof entrant.currentRawTime === "number" ? entrant.currentRawTime : parsed.timerSeconds,
+        currentTime: entrant.currentTime || parsed.timerSeconds.toFixed(2),
+        finishRawTime: typeof entrant.finishRawTime === "number" ? entrant.finishRawTime : null,
+        finishTime: entrant.finishTime || null,
+      })),
+    };
     const ageMs = Date.now() - Date.parse(row.received_at);
     const activeWindowMs = live.status === "RUNNING" ? 15_000 : 120_000;
     return {

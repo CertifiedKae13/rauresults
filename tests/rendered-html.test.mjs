@@ -40,6 +40,7 @@ test("server-renders the StrideSync results board", async () => {
   assert.match(html, /Live Race/);
   assert.match(html, /Event Index/);
   assert.match(html, /Team standings/);
+  assert.match(html, /Live 0\.5s/);
   assert.match(html, /POST \/api\/live/);
   assert.match(html, /POST \/api\/results/);
 });
@@ -68,6 +69,8 @@ test("GET /api/live returns an ordered demo race with timer, record, and splits"
   assert.equal(payload.live.entrants.length, 8);
   assert.ok(payload.live.entrants[0].progress > payload.live.entrants[1].progress);
   assert.ok(payload.live.entrants[0].splits.length >= 2);
+  assert.ok(payload.live.entrants[0].currentRawTime > 0);
+  assert.match(payload.live.entrants[0].currentTime, /^\d/);
 });
 
 test("POST /api/results rejects unauthenticated requests", async () => {

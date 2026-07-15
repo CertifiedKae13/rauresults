@@ -120,7 +120,7 @@ main { margin: 0 auto; max-width: 1530px; padding: 0 clamp(18px, 4vw, 64px) 48px
 .live-table tbody tr.live-leader { background: linear-gradient(90deg, rgba(0,166,166,.22), rgba(0,166,166,.05)); box-shadow: inset 4px 0 0 #39ddd5; }
 .live-rank { align-items: center; background: #193d50; border-radius: 50%; display: inline-flex; font-weight: 900; height: 26px; justify-content: center; width: 26px; }
 .live-leader .live-rank { background: #38d9cf; color: #082332; }
-.live-lane, .distance-cell, .split-cell { font-family: "SFMono-Regular", Consolas, monospace; font-variant-numeric: tabular-nums; font-weight: 800; }
+.live-lane, .distance-cell, .live-time-cell, .split-cell { font-family: "SFMono-Regular", Consolas, monospace; font-variant-numeric: tabular-nums; font-weight: 800; }
 .leader-label { background: #35d6cc; border-radius: 3px; color: #082332; font-size: 8px; font-weight: 900; margin-left: 8px; padding: 3px 5px; text-transform: uppercase; }
 .live-team { align-items: center; display: flex; gap: 7px; }
 .live-team img { height: 30px; object-fit: contain; width: 36px; }
@@ -130,6 +130,10 @@ main { margin: 0 auto; max-width: 1530px; padding: 0 clamp(18px, 4vw, 64px) 48px
 .progress-track { background: #254355; border-radius: 99px; display: block; height: 4px; overflow: hidden; width: 130px; }
 .progress-track i { background: linear-gradient(90deg, #00a6a6, #67e7de); border-radius: inherit; display: block; height: 100%; max-width: 100%; }
 .split-cell { color: #7fe4dd !important; white-space: nowrap; }
+.live-time-cell { color: #ffffff !important; font-size: 14px !important; white-space: nowrap; }
+.live-time-cell small { color: #7fa2b5; display: block; font-family: Arial, Helvetica, sans-serif; font-size: 7px; letter-spacing: .8px; margin-top: 2px; }
+.live-time-cell.official { color: #ffc65d !important; }
+.live-time-cell.official small { color: #ffc65d; }
 .live-board-footer { color: #87a9bb; display: flex; font-size: 10px; justify-content: space-between; padding: 11px 18px; }
 .live-board-idle { align-items: center; display: flex; justify-content: space-between; min-height: 150px; padding: 26px 30px; }
 .live-idle-clock { color: #406174; font-family: "SFMono-Regular", Consolas, monospace; font-size: clamp(38px, 5vw, 68px); font-weight: 900; }

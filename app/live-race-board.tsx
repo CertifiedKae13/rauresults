@@ -23,7 +23,7 @@ function formatTimer(seconds: number): string {
 }
 
 function lastSplit(entrant: LiveEntrant): string {
-  const split = entrant.splits.at(-1);
+  const split = (entrant.splits ?? []).at(-1);
   if (!split) return "—";
   return `${split.label}  ${split.time}${split.position ? `  (${split.position})` : ""}`;
 }
@@ -66,7 +66,7 @@ export function LiveRaceBoard() {
 
   useEffect(() => {
     const initial = window.setTimeout(() => void loadLive(), 0);
-    const poll = window.setInterval(() => void loadLive(), 2_000);
+    const poll = window.setInterval(() => void loadLive(), 500);
     return () => {
       window.clearTimeout(initial);
       window.clearInterval(poll);
@@ -120,7 +120,7 @@ export function LiveRaceBoard() {
       <div className="live-table-scroll">
         <table className="live-table">
           <thead>
-            <tr><th>Live</th><th>Lane</th><th>Athlete</th><th>Team</th><th>Track sector</th><th>Distance</th><th>Latest split</th></tr>
+            <tr><th>Live</th><th>Lane</th><th>Athlete</th><th>Team</th><th>Track sector</th><th>Distance</th><th>Time</th><th>Latest split</th></tr>
           </thead>
           <tbody>
             {live.entrants.map((entrant) => (
@@ -134,6 +134,10 @@ export function LiveRaceBoard() {
                   <span className="progress-track" aria-hidden="true"><i style={{ width: `${entrant.progress * 100}%` }} /></span>
                 </td>
                 <td className="distance-cell">{entrant.distanceMeters.toFixed(1)}m</td>
+                <td className={`live-time-cell${entrant.finishTime ? " official" : ""}`}>
+                  {entrant.finishTime ?? (live.timerRunning ? formatTimer(displayTimer) : entrant.currentTime)}
+                  <small>{entrant.finishTime ? "OFFICIAL" : "LIVE"}</small>
+                </td>
                 <td className="split-cell">{lastSplit(entrant)}</td>
               </tr>
             ))}
@@ -142,7 +146,7 @@ export function LiveRaceBoard() {
       </div>
       <footer className="live-board-footer">
         <span>Positions compare normalized distance along each curved lane path.</span>
-        <span>Live snapshots refresh every 2 seconds.</span>
+        <span>Live snapshots refresh every 0.5 seconds.</span>
       </footer>
     </section>
   );

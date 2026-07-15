@@ -22,6 +22,10 @@ export type LiveEntrant = {
   progress: number;
   state: string;
   finishPlace: number | null;
+  currentRawTime: number | null;
+  currentTime: string;
+  finishRawTime: number | null;
+  finishTime: string | null;
   splits: SplitTime[];
 };
 
