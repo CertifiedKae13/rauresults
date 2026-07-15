@@ -51,6 +51,11 @@ Cloudflare account. This project is a full server-rendered dashboard: its
 2. In **Settings → Bindings**, create a D1 binding named `DB` and select a new
    D1 database. In **Settings → Variables and Secrets**, add
    `RESULTS_INGEST_TOKEN` as a secret.
+
+   If Cloudflare shows a **Deploy command** and is deploying a Worker rather
+   than a Pages project, set `D1_DATABASE_ID` to the database UUID (and
+   optionally `D1_DATABASE_NAME`). Pages dashboard bindings do not require
+   either build variable.
 3. Redeploy, then set the Roblox reporter URL to
    `https://rauresults.pages.dev/api/live` and
    `https://rauresults.pages.dev/api/results`.

@@ -3,10 +3,9 @@ import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { sites } from "./build/sites-vite-plugin";
 
-const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
-  "00000000-0000-4000-8000-000000000000";
-
 const { d1, r2 } = hostingConfig;
+const d1DatabaseId = process.env.D1_DATABASE_ID?.trim();
+const d1DatabaseName = process.env.D1_DATABASE_NAME?.trim() || "rauresults";
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
@@ -14,12 +13,15 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
-  d1_databases: d1
+  // Pages supplies dashboard bindings to `_worker.js` at runtime. A Worker
+  // build needs a real D1 ID in its deploy config, so never ship the template
+  // placeholder that Cloudflare rejects before the app can start.
+  d1_databases: d1 && d1DatabaseId
     ? [
         {
           binding: d1,
-          database_name: "site-creator-d1",
-          database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+          database_name: d1DatabaseName,
+          database_id: d1DatabaseId,
         },
       ]
     : [],
