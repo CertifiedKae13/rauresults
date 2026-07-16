@@ -72,6 +72,48 @@ function standingRow(rank: number, teamAbbr: keyof typeof teams, points: number)
   };
 }
 
+function relayRow(rank: number, teamAbbr: keyof typeof teams, rawTime: number, members: string[]): ResultRow {
+  const team = teams[teamAbbr];
+  const cumulative = [0.245, 0.494, 0.744, 1].map((ratio) => Number((rawTime * ratio).toFixed(2)));
+  return {
+    rank,
+    name: team.name,
+    time: `${Math.floor(rawTime / 60)}:${(rawTime % 60).toFixed(2).padStart(5, "0")}`,
+    rawTime,
+    splits: cumulative.map((split, index) => ({
+      distance: (index + 1) * 400,
+      label: `Leg ${index + 1}`,
+      time: `${Math.floor(split / 60)}:${(split % 60).toFixed(2).padStart(5, "0")}`,
+      rawTime: split,
+      position: rank,
+    })),
+    relayLegs: cumulative.map((split, index) => {
+      const previous = cumulative[index - 1] ?? 0;
+      const legTime = Number((split - previous).toFixed(2));
+      return {
+        leg: index + 1,
+        athlete: members[index] ?? `Runner ${index + 1}`,
+        time: legTime.toFixed(2),
+        rawTime: legTime,
+        cumulativeTime: `${Math.floor(split / 60)}:${(split % 60).toFixed(2).padStart(5, "0")}`,
+        cumulativeRawTime: split,
+      };
+    }),
+    members,
+    gap: rank === 1 ? 0 : Number((rawTime - 178.12).toFixed(2)),
+    section: 1,
+    sectionPlace: rank,
+    gender: "Men",
+    team: team.name,
+    teamAbbr,
+    teamColor: team.color,
+    points: [10, 8, 6, 5, 4, 3][rank - 1] ?? null,
+    medal: rank === 1 ? "GOLD" : rank === 2 ? "SILVER" : rank === 3 ? "BRONZE" : null,
+    qualified: false,
+    status: rank <= 3 ? ["1ST", "2ND", "3RD"][rank - 1] : "",
+  };
+}
+
 export function getDemoReports(): ResultReport[] {
   const now = Date.now();
   const standings = [
@@ -158,6 +200,27 @@ export function getDemoReports(): ResultReport[] {
         raceRow(6, "Twanisha Terry", "22.33", "UF", 22.33, "Women", "Q", 2, 2, 100),
         raceRow(7, "Marie-Josee Ta Lou", "22.41", "USC", 22.41, "Women", "Q", 1, 2, 100),
         raceRow(8, "Shericka Jackson", "22.47", "LSU", 22.47, "Women", "Q", 3, 2, 100),
+      ],
+    },
+    {
+      ...base,
+      reportId: "demo-4x400-m-final",
+      kind: "RaceResults",
+      category: "Men",
+      roundName: "4X400 Final Results",
+      event: "4X400",
+      stage: "FINAL",
+      isFinal: true,
+      rowCount: 6,
+      capturedAt: new Date(now - 300_000).toISOString(),
+      receivedAt: new Date(now - 299_000).toISOString(),
+      results: [
+        relayRow(1, "UF", 178.12, ["Tyson Gay", "Christian Coleman", "Noah Lyles", "Michael Johnson"]),
+        relayRow(2, "UT", 179.04, ["Maurice Greene", "Justin Gatlin", "Fred Kerley", "Quincy Watts"]),
+        relayRow(3, "USC", 179.58, ["Andre De Grasse", "Trayvon Bromell", "Erriyon Knighton", "Rai Benjamin"]),
+        relayRow(4, "LSU", 180.21, ["Asafa Powell", "Yohan Blake", "Oblique Seville", "Rusheen McDonald"]),
+        relayRow(5, "UO", 181.03, ["Akani Simbine", "Letsile Tebogo", "Wayde van Niekerk", "Kirani James"]),
+        relayRow(6, "UGA", 181.77, ["Marcell Jacobs", "Zharnel Hughes", "Matthew Hudson-Smith", "Steven Gardiner"]),
       ],
     },
     {

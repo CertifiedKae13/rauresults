@@ -5,7 +5,7 @@ import {
   listReports,
   reportsFromJobInLastMinute,
 } from "../../../lib/results-store";
-import type { ResultReport, ResultRow, SplitTime } from "../../../lib/result-types";
+import type { RelayLegSplit, ResultReport, ResultRow, SplitTime } from "../../../lib/result-types";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +41,7 @@ function normalizeSplits(value: unknown): SplitTime[] {
     const rawTime = finiteNumber(valueFrom(input, "rawTime", "RawTime"));
     if (distance === null || rawTime === null || distance <= 0 || rawTime < 0) return [];
     const position = finiteNumber(valueFrom(input, "position", "Position"));
-    const roundedDistance = Math.min(1600, Math.floor(distance));
+    const roundedDistance = Math.min(10_000, Math.floor(distance));
     return [{
       distance: roundedDistance,
       label: shortString(valueFrom(input, "label", "Label"), `${roundedDistance}m`, 16),
@@ -50,6 +50,31 @@ function normalizeSplits(value: unknown): SplitTime[] {
       position: position === null ? null : Math.max(1, Math.min(99, Math.floor(position))),
     }];
   }).sort((left, right) => left.distance - right.distance);
+}
+
+function normalizeRelayLegs(value: unknown): RelayLegSplit[] {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 4).flatMap((candidate) => {
+    const input = record(candidate);
+    const leg = finiteNumber(valueFrom(input, "leg", "Leg"));
+    const rawTime = finiteNumber(valueFrom(input, "rawTime", "RawTime"));
+    const cumulativeRawTime = finiteNumber(valueFrom(input, "cumulativeRawTime", "CumulativeRawTime"));
+    if (leg === null || rawTime === null || cumulativeRawTime === null || rawTime < 0 || cumulativeRawTime < 0) return [];
+    return [{
+      leg: Math.max(1, Math.min(4, Math.floor(leg))),
+      athlete: shortString(valueFrom(input, "athlete", "Athlete"), "Unknown runner", 80),
+      time: shortString(valueFrom(input, "time", "Time"), rawTime.toFixed(2), 24),
+      rawTime,
+      cumulativeTime: shortString(valueFrom(input, "cumulativeTime", "CumulativeTime"), cumulativeRawTime.toFixed(2), 24),
+      cumulativeRawTime,
+    }];
+  }).sort((left, right) => left.leg - right.leg);
+}
+
+function normalizeMembers(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.slice(0, 4).flatMap((member) => typeof member === "string" && member.trim() ? [member.trim().slice(0, 80)] : [])
+    : [];
 }
 
 function normalizeRow(value: unknown, fallbackRank: number): ResultRow {
@@ -67,6 +92,8 @@ function normalizeRow(value: unknown, fallbackRank: number): ResultRow {
     time: shortString(valueFrom(input, "time", "Time"), "--", 24),
     rawTime,
     splits: normalizeSplits(valueFrom(input, "splits", "Splits")),
+    relayLegs: normalizeRelayLegs(valueFrom(input, "relayLegs", "RelayLegs")),
+    members: normalizeMembers(valueFrom(input, "members", "Members")),
     gap,
     section: section === null ? null : Math.max(1, Math.min(99, Math.floor(section))),
     sectionPlace: sectionPlace === null ? null : Math.max(1, Math.min(99, Math.floor(sectionPlace))),

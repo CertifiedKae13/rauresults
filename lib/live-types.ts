@@ -1,4 +1,4 @@
-import type { ResultSource, SplitTime } from "./result-types";
+import type { RelayLegSplit, ResultSource, SplitTime } from "./result-types";
 
 export type WorldRecord = {
   event: string;
@@ -28,6 +28,11 @@ export type LiveEntrant = {
   finishTime: string | null;
   qualificationStatus: "Q" | "q" | null;
   splits: SplitTime[];
+  relayLegs: RelayLegSplit[];
+  members: string[];
+  activeAthlete: string | null;
+  currentLeg: number | null;
+  batonState: string | null;
 };
 
 export type LiveRace = {

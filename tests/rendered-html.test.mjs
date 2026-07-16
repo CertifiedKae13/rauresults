@@ -6,15 +6,20 @@ import { after, before, test } from "node:test";
 const port = 3400 + (process.pid % 400);
 const origin = `http://127.0.0.1:${port}`;
 let server;
+let serverOutput = "";
 
 before(async () => {
   server = spawn("./node_modules/.bin/vinext", ["dev", "--port", String(port), "--hostname", "127.0.0.1"], {
     cwd: new URL("../", import.meta.url),
     env: { ...process.env, NODE_ENV: "development" },
-    stdio: "ignore",
+    stdio: ["ignore", "pipe", "pipe"],
   });
+  server.stdout?.on("data", (chunk) => { serverOutput += chunk.toString(); });
+  server.stderr?.on("data", (chunk) => { serverOutput += chunk.toString(); });
 
-  const deadline = Date.now() + 15_000;
+  // A cold vinext/Vite graph can take roughly 25 seconds on the first local
+  // launch, especially after a production build has replaced its cache.
+  const deadline = Date.now() + 60_000;
   while (Date.now() < deadline) {
     try {
       const response = await fetch(`${origin}/api/health`);
@@ -24,7 +29,7 @@ before(async () => {
     }
     await new Promise((resolve) => setTimeout(resolve, 150));
   }
-  throw new Error("Timed out waiting for the production test server");
+  throw new Error(`Timed out waiting for the production test server\n${serverOutput.slice(-4000)}`);
 });
 
 after(() => {
@@ -56,6 +61,10 @@ test("GET /api/results returns the safe demo feed when storage is empty", async 
   assert.equal(payload.reports[0].kind, "RaceResults");
   assert.ok(payload.reports[0].results.length > 0);
   assert.ok(payload.reports[0].results[0].splits.length > 0);
+  const relay = payload.reports.find((report) => report.event === "4X400");
+  assert.ok(relay);
+  assert.equal(relay.results[0].relayLegs.length, 4);
+  assert.equal(relay.results[0].members.length, 4);
 });
 
 test("GET /api/live returns an ordered demo race with timer, bubble, qualifications, and finish times", async () => {
@@ -92,10 +101,18 @@ test("live board exposes finished time and removes the track-sector and latest-s
   assert.match(source, /setInterval\(\(\) => void loadLive\(\), 250\)/);
   assert.match(source, /Feed delay/);
   assert.match(source, /finish-calibrated distance/);
+  assert.match(source, /Relay team \/ active runner/);
+  assert.match(source, /relayLegs\.map/);
   const orderSource = await readFile(new URL("../lib/live-order.ts", import.meta.url), "utf8");
   assert.match(orderSource, /right\.distanceMeters - left\.distanceMeters/);
   assert.doesNotMatch(source, /<th>Track sector<\/th>/);
   assert.doesNotMatch(source, /<th>Latest split<\/th>/);
+});
+
+test("live ingest rejects a distance that disagrees with normalized lane progress", async () => {
+  const source = await readFile(new URL("../app/api/live/route.ts", import.meta.url), "utf8");
+  assert.match(source, /Math\.abs\(reportedDistance - progressDistance\) > distanceTolerance/);
+  assert.match(source, /normalizeRelayLegs/);
 });
 
 test("POST /api/results rejects unauthenticated requests", async () => {

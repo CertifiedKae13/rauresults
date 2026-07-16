@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ResultRow, ResultsResponse } from "../lib/result-types";
 import { LiveRaceBoard } from "./live-race-board";
 
-const EVENT_ORDER = ["100M", "110H", "200M", "300M", "400M", "400H"];
+const EVENT_ORDER = ["100M", "110H", "200M", "300M", "400M", "400H", "4X100", "4X200", "4X400", "4X800"];
 
 function eventLabel(event: string): string {
   const labels: Record<string, string> = {
@@ -15,6 +15,10 @@ function eventLabel(event: string): string {
     "300M": "300 Meter Dash",
     "400M": "400 Meter Dash",
     "400H": "400 Meter Hurdles",
+    "4X100": "4 × 100 Meter Relay",
+    "4X200": "4 × 200 Meter Relay",
+    "4X400": "4 × 400 Meter Relay",
+    "4X800": "4 × 800 Meter Relay",
   };
   return labels[event] ?? event;
 }
@@ -122,6 +126,7 @@ export function ResultsDashboard() {
     }
     return Array.from(distances).sort((left, right) => left - right);
   }, [selectedReport]);
+  const selectedIsRelay = selectedReport?.event.startsWith("4X") ?? false;
 
   function chooseFilter(filter: string) {
     setEventFilter(filter);
@@ -240,12 +245,12 @@ export function ResultsDashboard() {
                 </div>
                 <div className="table-scroll">
                   <table className="results-table">
-                    <thead><tr><th>Pl</th><th>Athlete</th><th>Team</th>{splitColumns.map((distance) => <th key={distance}>{distance}m split</th>)}<th>Time</th><th>{sectionHeading}</th><th>{selectedReport.isFinal ? "Pts" : "Gap"}</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Pl</th><th>{selectedIsRelay ? "Relay team" : "Athlete"}</th><th>School</th>{splitColumns.map((distance, index) => <th key={distance}>{selectedIsRelay ? `Leg ${index + 1}` : `${distance}m split`}</th>)}<th>Time</th><th>{sectionHeading}</th><th>{selectedReport.isFinal ? "Pts" : "Gap"}</th><th>Status</th></tr></thead>
                     <tbody>
                       {selectedReport.results.map((row) => (
                         <tr key={`${row.rank}-${row.name}`}>
                           <td className="place-cell"><span className={row.rank <= 3 ? `medal-place place-${row.rank}` : ""}>{row.rank}</span></td>
-                          <td><strong>{row.name}</strong></td>
+                          <td><strong>{row.name}</strong>{selectedIsRelay && (row.members?.length ?? 0) > 0 && <small className="relay-members">{row.members?.join(" · ")}</small>}</td>
                           <td><div className="team-cell"><TeamLogo row={row} /></div></td>
                           {splitColumns.map((distance) => {
                             const split = (row.splits ?? []).find((candidate) => candidate.distance === distance);

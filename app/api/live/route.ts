@@ -3,7 +3,7 @@ import { getIngestToken } from "../../../lib/results-store";
 import { getLatestLiveRace, upsertLiveRace } from "../../../lib/live-store";
 import { orderLiveEntrants } from "../../../lib/live-order";
 import type { LiveEntrant, LiveRace, WorldRecord } from "../../../lib/live-types";
-import type { SplitTime } from "../../../lib/result-types";
+import type { RelayLegSplit, SplitTime } from "../../../lib/result-types";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +43,7 @@ function normalizeSplits(value: unknown): SplitTime[] {
     const distance = finiteNumber(valueFrom(input, "distance", "Distance"));
     const rawTime = finiteNumber(valueFrom(input, "rawTime", "RawTime"));
     if (distance === null || rawTime === null || distance <= 0 || rawTime < 0) return [];
-    const normalizedDistance = Math.min(1600, Math.floor(distance));
+    const normalizedDistance = Math.min(10_000, Math.floor(distance));
     const position = finiteNumber(valueFrom(input, "position", "Position"));
     return [{
       distance: normalizedDistance,
@@ -55,12 +55,48 @@ function normalizeSplits(value: unknown): SplitTime[] {
   }).sort((left, right) => left.distance - right.distance);
 }
 
+function normalizeRelayLegs(value: unknown): RelayLegSplit[] {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 4).flatMap((candidate) => {
+    const input = record(candidate);
+    const leg = finiteNumber(valueFrom(input, "leg", "Leg"));
+    const rawTime = finiteNumber(valueFrom(input, "rawTime", "RawTime"));
+    const cumulativeRawTime = finiteNumber(valueFrom(input, "cumulativeRawTime", "CumulativeRawTime"));
+    if (leg === null || rawTime === null || cumulativeRawTime === null || rawTime < 0 || cumulativeRawTime < 0) return [];
+    return [{
+      leg: Math.max(1, Math.min(4, Math.floor(leg))),
+      athlete: shortString(valueFrom(input, "athlete", "Athlete"), "Unknown runner", 80),
+      time: shortString(valueFrom(input, "time", "Time"), rawTime.toFixed(2), 24),
+      rawTime,
+      cumulativeTime: shortString(valueFrom(input, "cumulativeTime", "CumulativeTime"), cumulativeRawTime.toFixed(2), 24),
+      cumulativeRawTime,
+    }];
+  }).sort((left, right) => left.leg - right.leg);
+}
+
+function normalizeMembers(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.slice(0, 4).flatMap((member) => typeof member === "string" && member.trim() ? [member.trim().slice(0, 80)] : [])
+    : [];
+}
+
 function normalizeEntrants(value: unknown, eventDistance: number): LiveEntrant[] {
   if (!Array.isArray(value)) return [];
   const entrants = value.slice(0, 16).map((candidate, index) => {
     const input = record(candidate);
     const progress = Math.max(0, Math.min(1, finiteNumber(valueFrom(input, "progress", "Progress")) ?? 0));
     const finishPlace = finiteNumber(valueFrom(input, "finishPlace", "FinishPlace"));
+    const state = shortString(valueFrom(input, "state", "State"), "Staged", 20);
+    const reportedDistance = Math.max(0, Math.min(eventDistance, finiteNumber(valueFrom(input, "distanceMeters", "DistanceMeters")) ?? progress * eventDistance));
+    const progressDistance = progress * eventDistance;
+    const distanceTolerance = Math.max(1, eventDistance * 0.01);
+    // The Roblox source normally publishes matching progress and distance. If a
+    // malformed/stale frame claims a full lap while progress is still at the
+    // blocks, prefer the normalized lane progress instead of showing 400.0m.
+    const distanceMeters = Math.abs(reportedDistance - progressDistance) > distanceTolerance
+      ? progressDistance
+      : reportedDistance;
+    const currentLeg = finiteNumber(valueFrom(input, "currentLeg", "CurrentLeg"));
     return {
       rank: index + 1,
       name: shortString(valueFrom(input, "name", "Name"), "Unknown athlete", 80),
@@ -69,9 +105,9 @@ function normalizeEntrants(value: unknown, eventDistance: number): LiveEntrant[]
       team: shortString(valueFrom(input, "team", "Team"), "Unattached", 80),
       teamAbbr: shortString(valueFrom(input, "teamAbbr", "TeamAbbr"), "UNA", 12),
       teamColor: color(valueFrom(input, "teamColor", "TeamColor")),
-      distanceMeters: Math.max(0, Math.min(eventDistance, finiteNumber(valueFrom(input, "distanceMeters", "DistanceMeters")) ?? progress * eventDistance)),
+      distanceMeters,
       progress,
-      state: shortString(valueFrom(input, "state", "State"), "Staged", 20),
+      state,
       finishPlace: finishPlace === null ? null : Math.max(1, Math.min(99, Math.floor(finishPlace))),
       currentRawTime: finiteNumber(valueFrom(input, "currentRawTime", "CurrentRawTime")),
       currentTime: shortString(valueFrom(input, "currentTime", "CurrentTime"), "--", 24),
@@ -79,6 +115,11 @@ function normalizeEntrants(value: unknown, eventDistance: number): LiveEntrant[]
       finishTime: shortString(valueFrom(input, "finishTime", "FinishTime"), "", 24) || null,
       qualificationStatus: qualificationStatus(valueFrom(input, "qualificationStatus", "QualificationStatus")),
       splits: normalizeSplits(valueFrom(input, "splits", "Splits")),
+      relayLegs: normalizeRelayLegs(valueFrom(input, "relayLegs", "RelayLegs")),
+      members: normalizeMembers(valueFrom(input, "members", "Members")),
+      activeAthlete: shortString(valueFrom(input, "activeAthlete", "ActiveAthlete"), "", 80) || null,
+      currentLeg: currentLeg === null ? null : Math.max(1, Math.min(4, Math.floor(currentLeg))),
+      batonState: shortString(valueFrom(input, "batonState", "BatonState"), "", 20) || null,
     } satisfies LiveEntrant;
   });
 
@@ -107,7 +148,7 @@ function normalizeLiveRace(value: unknown): LiveRace | null {
   const meetId = shortString(input.meetId, "", 80);
   const jobId = shortString(source.jobId, "", 80);
   if (!raceId || !meetId || !jobId) return null;
-  const eventDistance = Math.max(40, Math.min(1600, finiteNumber(input.eventDistance) ?? 200));
+  const eventDistance = Math.max(40, Math.min(10_000, finiteNumber(input.eventDistance) ?? 200));
   const capturedAtInput = shortString(input.capturedAt, "", 40);
   const capturedDate = Date.parse(capturedAtInput);
   const capturedAt = Number.isFinite(capturedDate) ? new Date(capturedDate).toISOString() : new Date().toISOString();

@@ -6,12 +6,23 @@ export type SplitTime = {
   position: number | null;
 };
 
+export type RelayLegSplit = {
+  leg: number;
+  athlete: string;
+  time: string;
+  rawTime: number;
+  cumulativeTime: string;
+  cumulativeRawTime: number;
+};
+
 export type ResultRow = {
   rank: number;
   name: string;
   time: string;
   rawTime: number | null;
   splits?: SplitTime[];
+  relayLegs?: RelayLegSplit[];
+  members?: string[];
   gap: number | null;
   section: number | null;
   sectionPlace: number | null;

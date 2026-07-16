@@ -52,6 +52,11 @@ export function getDemoLiveRace(): LiveRace {
         { distance: 100, label: "100m", time: split100.toFixed(2), rawTime: split100, position: index + 1 },
         { distance: 200, label: "200m", time: split200.toFixed(2), rawTime: split200, position: index + 1 },
       ],
+      relayLegs: [],
+      members: [],
+      activeAthlete: null,
+      currentLeg: null,
+      batonState: null,
     };
   });
 

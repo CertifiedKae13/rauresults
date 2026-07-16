@@ -105,6 +105,7 @@ export function LiveRaceBoard() {
 
   const bubbleTime = live.bubbleDisplayTime ?? (live.bubbleTime === null ? "—" : formatTimer(live.bubbleTime));
   const feedDelay = Math.max(0, clockNow - live.capturedAtUnix);
+  const isRelay = live.event.startsWith("4X");
 
   return (
     <section className="live-board" id="live" aria-labelledby="live-title">
@@ -112,7 +113,7 @@ export function LiveRaceBoard() {
         <div className="live-event-copy">
           <p className="live-kicker"><span aria-hidden="true" /> {live.status === "RUNNING" ? "LIVE NOW" : "RACE COMPLETE"}</p>
           <h2 id="live-title">{live.category} {live.event} · {live.roundName}</h2>
-          <p aria-live="polite">{live.entrants.length} athletes · lane-path tracking · {response?.demo ? "preview feed" : "Roblox server feed"}</p>
+          <p aria-live="polite">{live.entrants.length} {isRelay ? "relay teams" : "athletes"} · lane-path tracking · {response?.demo ? "preview feed" : "Roblox server feed"}</p>
         </div>
         <div className="live-clock-wrap" aria-label={`Race time ${formatTimer(displayTimer)}`}>
           <span>RACE CLOCK</span>
@@ -135,7 +136,7 @@ export function LiveRaceBoard() {
       <div className="live-table-scroll">
         <table className="live-table">
           <thead>
-            <tr><th>Live</th><th>Lane</th><th>Athlete</th><th>Team</th><th>Distance</th><th>Time</th><th>Finished time</th></tr>
+            <tr><th>Live</th><th>Lane</th><th>{isRelay ? "Relay team / active runner" : "Athlete"}</th><th>School</th><th>Distance</th><th>Time</th><th>Finished time</th></tr>
           </thead>
           <tbody>
             {live.entrants.map((entrant) => (
@@ -144,6 +145,8 @@ export function LiveRaceBoard() {
                 <td className="live-lane">{entrant.lane || "—"}</td>
                 <td>
                   <strong>{entrant.name}</strong>
+                  {isRelay && entrant.activeAthlete && <small className="relay-active-runner">Leg {entrant.currentLeg ?? "—"} · {entrant.activeAthlete} · {entrant.batonState ?? "BATON"}</small>}
+                  {isRelay && entrant.relayLegs.length > 0 && <span className="relay-live-splits">{entrant.relayLegs.map((leg) => <small key={leg.leg}>L{leg.leg} {leg.time}</small>)}</span>}
                   {entrant.qualificationStatus && (
                     <small className={`qualification-label qualification-${entrant.qualificationStatus === "q" ? "time" : "auto"}`}>
                       {entrant.qualificationStatus}

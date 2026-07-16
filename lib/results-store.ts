@@ -40,6 +40,8 @@ function hydrateHistoricalReport(report: ResultReport): ResultReport {
     (Array.isArray(rows) ? rows : []).map((row) => ({
       ...row,
       splits: Array.isArray(row.splits) ? row.splits : [],
+      relayLegs: Array.isArray(row.relayLegs) ? row.relayLegs : [],
+      members: Array.isArray(row.members) ? row.members : [],
     }));
 
   return {

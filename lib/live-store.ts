@@ -81,6 +81,11 @@ export async function getLatestLiveRace(): Promise<LiveResponse> {
       entrants: (Array.isArray(parsed.entrants) ? parsed.entrants : []).map((entrant) => ({
         ...entrant,
         splits: Array.isArray(entrant.splits) ? entrant.splits : [],
+        relayLegs: Array.isArray(entrant.relayLegs) ? entrant.relayLegs : [],
+        members: Array.isArray(entrant.members) ? entrant.members : [],
+        activeAthlete: entrant.activeAthlete || null,
+        currentLeg: typeof entrant.currentLeg === "number" ? entrant.currentLeg : null,
+        batonState: entrant.batonState || null,
         currentRawTime: typeof entrant.currentRawTime === "number" ? entrant.currentRawTime : parsed.timerSeconds,
         currentTime: entrant.currentTime || parsed.timerSeconds.toFixed(2),
         finishRawTime: typeof entrant.finishRawTime === "number" ? entrant.finishRawTime : null,

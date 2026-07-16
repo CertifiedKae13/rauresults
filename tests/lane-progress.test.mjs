@@ -30,6 +30,11 @@ function projectProgress(position, points) {
   return best.route / total;
 }
 
+function leashedProgress(projectedRoute, travelledRoute, courseDistance, lead = 5) {
+  const allowedLead = travelledRoute > 0.75 ? lead : 0;
+  return Math.max(0, Math.min(1, Math.min(projectedRoute, travelledRoute + allowedLead) / courseDistance));
+}
+
 test("lane arc length compares staggered curved lanes fairly", () => {
   const insideLane = [[0, 0], [0, 50], [50, 100], [100, 100]];
   const outsideLane = [[20, 0], [20, 65], [65, 120], [120, 120]];
@@ -68,4 +73,14 @@ test("split crossing interpolation stays between samples", () => {
   const fraction = (60 - previousMeters) / (currentMeters - previousMeters);
   const crossing = previousTime + (currentTime - previousTime) * fraction;
   assert.equal(crossing, 6.6);
+});
+
+test("an overlapping oval start cannot project lane 1 to a completed lap", () => {
+  assert.equal(leashedProgress(400, 0, 400), 0);
+  assert.ok(leashedProgress(400, 12, 400) < 0.05);
+});
+
+test("the first finish-wall crossing of an 800m leg is not finish eligible", () => {
+  assert.equal(400 / 800 >= 0.8, false);
+  assert.equal(790 / 800 >= 0.8, true);
 });
