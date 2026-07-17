@@ -3,9 +3,11 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ResultRow, ResultsResponse } from "../lib/result-types";
+import { TEAM_LOGOS } from "../lib/team-logos";
 import { LiveRaceBoard } from "./live-race-board";
 
 const EVENT_ORDER = ["100M", "110H", "200M", "300M", "400M", "400H", "4X100", "4X200", "4X400", "4X800"];
+const RELAY_LEGS = [1, 2, 3, 4] as const;
 
 function eventLabel(event: string): string {
   const labels: Record<string, string> = {
@@ -30,15 +32,6 @@ function readableTime(value?: string): string {
     ? "Recently"
     : parsed.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
 }
-
-const TEAM_LOGOS: Record<string, string> = {
-  UF: "/team-logos/florida.svg",
-  UT: "/team-logos/texas.svg",
-  USC: "/team-logos/usc.svg",
-  LSU: "/team-logos/lsu.svg",
-  UO: "/team-logos/oregon.svg",
-  UGA: "/team-logos/georgia.svg",
-};
 
 function TeamLogo({ row, standings = false }: { row: ResultRow; standings?: boolean }) {
   const logo = TEAM_LOGOS[row.teamAbbr.toUpperCase()];
@@ -119,6 +112,7 @@ export function ResultsDashboard() {
     const report = data?.reports.find((candidate) => candidate.kind === "TeamStandings");
     return report?.results.length ? report.results : (selectedReport?.standings ?? []);
   }, [data, selectedReport]);
+  const selectedIsRelay = selectedReport?.event.startsWith("4X") ?? false;
   const splitColumns = useMemo(() => {
     const distances = new Set<number>();
     for (const row of selectedReport?.results ?? []) {
@@ -126,7 +120,9 @@ export function ResultsDashboard() {
     }
     return Array.from(distances).sort((left, right) => left - right);
   }, [selectedReport]);
-  const selectedIsRelay = selectedReport?.event.startsWith("4X") ?? false;
+  const relayLegDistance = selectedIsRelay
+    ? Number(selectedReport?.event.match(/^4X(\d+)/)?.[1] ?? 0)
+    : 0;
 
   function chooseFilter(filter: string) {
     setEventFilter(filter);
@@ -244,18 +240,32 @@ export function ResultsDashboard() {
                   <span className="complete-stamp">{selectedReport.isFinal ? "COMPLETE" : "ADVANCING"}</span>
                 </div>
                 <div className="table-scroll">
-                  <table className="results-table">
-                    <thead><tr><th>Pl</th><th>{selectedIsRelay ? "Relay team" : "Athlete"}</th><th>School</th>{splitColumns.map((distance, index) => <th key={distance}>{selectedIsRelay ? `Leg ${index + 1}` : `${distance}m split`}</th>)}<th>Time</th><th>{sectionHeading}</th><th>{selectedReport.isFinal ? "Pts" : "Gap"}</th><th>Status</th></tr></thead>
+                  <table className={`results-table${selectedIsRelay ? " relay-results-table" : ""}`}>
+                    <thead><tr><th>Pl</th><th>{selectedIsRelay ? "Relay team" : "Athlete"}</th><th>School</th>{selectedIsRelay
+                      ? RELAY_LEGS.map((leg) => <th key={leg}>Leg {leg}<small className="relay-leg-distance">{relayLegDistance}m split</small></th>)
+                      : splitColumns.map((distance) => <th key={distance}>{distance}m split</th>)}<th>Time</th><th>{sectionHeading}</th><th>{selectedReport.isFinal ? "Pts" : "Gap"}</th><th>Status</th></tr></thead>
                     <tbody>
                       {selectedReport.results.map((row) => (
                         <tr key={`${row.rank}-${row.name}`}>
                           <td className="place-cell"><span className={row.rank <= 3 ? `medal-place place-${row.rank}` : ""}>{row.rank}</span></td>
                           <td><strong>{row.name}</strong>{selectedIsRelay && (row.members?.length ?? 0) > 0 && <small className="relay-members">{row.members?.join(" · ")}</small>}</td>
                           <td><div className="team-cell"><TeamLogo row={row} /></div></td>
-                          {splitColumns.map((distance) => {
-                            const split = (row.splits ?? []).find((candidate) => candidate.distance === distance);
-                            return <td key={distance} className="split-time-cell">{split ? <>{split.time}<small>{split.position ? `(${split.position})` : ""}</small></> : "—"}</td>;
-                          })}
+                          {selectedIsRelay
+                            ? RELAY_LEGS.map((legNumber) => {
+                              const leg = row.relayLegs?.find((candidate) => candidate.leg === legNumber);
+                              const fallbackSplit = row.splits?.[legNumber - 1];
+                              const athlete = leg?.athlete || row.members?.[legNumber - 1];
+                              const time = leg?.time || fallbackSplit?.time;
+                              return (
+                                <td key={legNumber} className="split-time-cell relay-result-split">
+                                  {time ? <><strong>{time}</strong><small className="relay-split-athlete">{athlete || `Leg ${legNumber} runner`}</small></> : "—"}
+                                </td>
+                              );
+                            })
+                            : splitColumns.map((distance) => {
+                              const split = (row.splits ?? []).find((candidate) => candidate.distance === distance);
+                              return <td key={distance} className="split-time-cell">{split ? <>{split.time}<small>{split.position ? `(${split.position})` : ""}</small></> : "—"}</td>;
+                            })}
                           <td className="time-cell">{row.time}</td>
                           <td className="section-cell">{row.section ? `${row.section}(${row.sectionPlace ?? "—"})` : "—"}</td>
                           <td>{selectedReport.isFinal ? (row.points ?? "—") : (row.gap ? `+${row.gap.toFixed(2)}` : "—")}</td>

@@ -189,6 +189,8 @@ tbody tr:hover { background: #eaf6f5; }
 .result-summary .qualification-note { color: var(--teal-dark); font-size: 12px; font-weight: 700; }
 .complete-stamp { border: 2px solid var(--teal-dark); color: var(--teal-dark); font-size: 11px; font-weight: 900; letter-spacing: 1px; padding: 8px 10px; }
 .results-table { min-width: 720px; }
+.relay-results-table { min-width: 1280px; }
+.relay-leg-distance { color: rgba(255,255,255,.65); display: block; font-size: 8px; margin-top: 2px; text-transform: none; }
 .results-table th:nth-child(1), .results-table td:nth-child(1), .results-table th:nth-child(5), .results-table td:nth-child(5), .results-table th:nth-child(6), .results-table td:nth-child(6), .results-table th:nth-child(7), .results-table td:nth-child(7) { text-align: center; }
 .results-table td { font-size: 15px; padding-bottom: 14px; padding-top: 14px; }
 .results-table td:nth-child(2) strong { font-size: 16px; }
@@ -196,6 +198,9 @@ tbody tr:hover { background: #eaf6f5; }
 .time-cell { font-size: 17px !important; font-variant-numeric: tabular-nums; font-weight: 900; }
 .split-time-cell { color: var(--teal-dark); font-variant-numeric: tabular-nums; font-weight: 900; text-align: center; white-space: nowrap; }
 .split-time-cell small { color: var(--muted); display: block; font-size: 9px; margin-top: 2px; }
+.relay-result-split { min-width: 132px; white-space: normal; }
+.relay-result-split > strong { color: var(--teal-dark); display: block; font-size: 15px; }
+.relay-result-split .relay-split-athlete { color: #46566a; font-family: inherit; font-size: 9px; font-weight: 800; line-height: 1.25; margin: 5px auto 0; max-width: 120px; overflow-wrap: anywhere; }
 .place-cell { width: 64px; }
 .medal-place { align-items: center; border-radius: 50%; display: inline-flex; font-size: 12px; font-weight: 900; height: 28px; justify-content: center; width: 28px; }
 .place-1 { background: #f3ca52; color: #523900; }

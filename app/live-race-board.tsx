@@ -3,15 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LiveEntrant, LiveResponse } from "../lib/live-types";
-
-const TEAM_LOGOS: Record<string, string> = {
-  UF: "/team-logos/florida.svg",
-  UT: "/team-logos/texas.svg",
-  USC: "/team-logos/usc.svg",
-  LSU: "/team-logos/lsu.svg",
-  UO: "/team-logos/oregon.svg",
-  UGA: "/team-logos/georgia.svg",
-};
+import { TEAM_LOGOS } from "../lib/team-logos";
 
 function formatTimer(seconds: number): string {
   const safe = Math.max(0, seconds);

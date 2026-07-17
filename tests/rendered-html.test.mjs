@@ -105,6 +105,10 @@ test("live board exposes finished time and removes the track-sector and latest-s
   assert.match(source, /relayLegs\.map/);
   assert.match(source, /m leg splits/);
   assert.match(source, /relay-splits-cell/);
+  const resultsSource = await readFile(new URL("../app/results-dashboard.tsx", import.meta.url), "utf8");
+  assert.match(resultsSource, /candidate\.leg === legNumber/);
+  assert.match(resultsSource, /relay-split-athlete/);
+  assert.match(resultsSource, /leg\?\.athlete \|\| row\.members/);
   const orderSource = await readFile(new URL("../lib/live-order.ts", import.meta.url), "utf8");
   assert.match(orderSource, /right\.distanceMeters - left\.distanceMeters/);
   assert.doesNotMatch(source, /<th>Track sector<\/th>/);
