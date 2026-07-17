@@ -36,12 +36,12 @@ npm test
 
 `npm test` builds the production bundle, starts an isolated local runtime, checks the rendered dashboard, verifies the demo API response, and verifies that unsigned ingest requests are rejected.
 
-## Free Cloudflare Pages address
+## Cloudflare deployment
 
-The project can be published as `https://rauresults.pages.dev` on a free
-Cloudflare account. This project is a full server-rendered dashboard: its
-`/api/live` and `/api/results` endpoints, D1 database, and private
-`RESULTS_INGEST_TOKEN` must all be configured in the Pages project.
+The production dashboard is available at
+`https://rauresults2.mythreebears5.workers.dev`. Its `/api/live` and
+`/api/results` endpoints, D1 database, and private `RESULTS_INGEST_TOKEN` are
+configured in the Cloudflare Worker deployment.
 
 1. Push this project to GitHub, then create a **Pages** project named
    `rauresults` in Cloudflare from that repository. Set the build command to
@@ -57,8 +57,8 @@ Cloudflare account. This project is a full server-rendered dashboard: its
    optionally `D1_DATABASE_NAME`). Pages dashboard bindings do not require
    either build variable.
 3. Redeploy, then set the Roblox reporter URL to
-   `https://rauresults.pages.dev/api/live` and
-   `https://rauresults.pages.dev/api/results`.
+   `https://rauresults2.mythreebears5.workers.dev/api/live` and
+   `https://rauresults2.mythreebears5.workers.dev/api/results`.
 
 ## Database
 

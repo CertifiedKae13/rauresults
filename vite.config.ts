@@ -4,7 +4,8 @@ import hostingConfig from "./.openai/hosting.json";
 import { sites } from "./build/sites-vite-plugin";
 
 const { d1, r2 } = hostingConfig;
-const d1DatabaseId = process.env.D1_DATABASE_ID?.trim();
+const DEFAULT_D1_DATABASE_ID = "a7a855a6-0638-4ccf-88de-770e1d25ed98";
+const d1DatabaseId = process.env.D1_DATABASE_ID?.trim() || DEFAULT_D1_DATABASE_ID;
 const d1DatabaseName = process.env.D1_DATABASE_NAME?.trim() || "rauresults";
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.

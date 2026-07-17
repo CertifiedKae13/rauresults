@@ -106,6 +106,7 @@ export function LiveRaceBoard() {
   const bubbleTime = live.bubbleDisplayTime ?? (live.bubbleTime === null ? "—" : formatTimer(live.bubbleTime));
   const feedDelay = Math.max(0, clockNow - live.capturedAtUnix);
   const isRelay = live.event.startsWith("4X");
+  const relayLegDistance = isRelay ? Number(live.event.match(/^4X(\d+)/)?.[1] ?? 0) : 0;
 
   return (
     <section className="live-board" id="live" aria-labelledby="live-title">
@@ -136,7 +137,7 @@ export function LiveRaceBoard() {
       <div className="live-table-scroll">
         <table className="live-table">
           <thead>
-            <tr><th>Live</th><th>Lane</th><th>{isRelay ? "Relay team / active runner" : "Athlete"}</th><th>School</th><th>Distance</th><th>Time</th><th>Finished time</th></tr>
+            <tr><th>Live</th><th>Lane</th><th>{isRelay ? "Relay team / active runner" : "Athlete"}</th><th>School</th><th>Distance</th>{isRelay && <th>{relayLegDistance}m leg splits</th>}<th>Time</th><th>Finished time</th></tr>
           </thead>
           <tbody>
             {live.entrants.map((entrant) => (
@@ -146,7 +147,6 @@ export function LiveRaceBoard() {
                 <td>
                   <strong>{entrant.name}</strong>
                   {isRelay && entrant.activeAthlete && <small className="relay-active-runner">Leg {entrant.currentLeg ?? "—"} · {entrant.activeAthlete} · {entrant.batonState ?? "BATON"}</small>}
-                  {isRelay && entrant.relayLegs.length > 0 && <span className="relay-live-splits">{entrant.relayLegs.map((leg) => <small key={leg.leg}>L{leg.leg} {leg.time}</small>)}</span>}
                   {entrant.qualificationStatus && (
                     <small className={`qualification-label qualification-${entrant.qualificationStatus === "q" ? "time" : "auto"}`}>
                       {entrant.qualificationStatus}
@@ -156,6 +156,11 @@ export function LiveRaceBoard() {
                 </td>
                 <td><span className="live-team"><LiveTeamLogo entrant={entrant} /><small>{entrant.teamAbbr}</small></span></td>
                 <td className="distance-cell">{entrant.distanceMeters.toFixed(1)}m</td>
+                {isRelay && <td className="relay-splits-cell">
+                  {entrant.relayLegs.length > 0
+                    ? <span className="relay-live-splits">{entrant.relayLegs.map((leg) => <small key={leg.leg}><b>L{leg.leg}</b><strong>{leg.time}</strong></small>)}</span>
+                    : "—"}
+                </td>}
                 <td className="live-time-cell">
                   {formatTimer(displayTimer)}
                   <small>{live.timerRunning ? "LIVE" : "FINAL CLOCK"}</small>

@@ -103,6 +103,8 @@ test("live board exposes finished time and removes the track-sector and latest-s
   assert.match(source, /finish-calibrated distance/);
   assert.match(source, /Relay team \/ active runner/);
   assert.match(source, /relayLegs\.map/);
+  assert.match(source, /m leg splits/);
+  assert.match(source, /relay-splits-cell/);
   const orderSource = await readFile(new URL("../lib/live-order.ts", import.meta.url), "utf8");
   assert.match(orderSource, /right\.distanceMeters - left\.distanceMeters/);
   assert.doesNotMatch(source, /<th>Track sector<\/th>/);

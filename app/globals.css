@@ -121,6 +121,11 @@ main { margin: 0 auto; max-width: 1530px; padding: 0 clamp(18px, 4vw, 64px) 48px
 .relay-active-runner { color: #83d9d4; display: block; font-size: 9px; font-weight: 800; letter-spacing: .2px; margin-top: 4px; text-transform: uppercase; }
 .relay-live-splits { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
 .relay-live-splits small { background: rgba(108,232,223,.1); border: 1px solid rgba(108,232,223,.22); border-radius: 3px; color: #c7f4f1; font-family: "SFMono-Regular", Consolas, monospace; font-size: 8px; padding: 2px 4px; }
+.relay-splits-cell { min-width: 180px; }
+.relay-splits-cell .relay-live-splits { margin-top: 0; }
+.relay-splits-cell .relay-live-splits small { display: grid; gap: 1px; min-width: 38px; text-align: center; }
+.relay-splits-cell .relay-live-splits b { color: #78a9bb; font-size: 7px; letter-spacing: .5px; }
+.relay-splits-cell .relay-live-splits strong { color: #ffffff; font-size: 10px; }
 .live-team { align-items: center; display: flex; gap: 7px; }
 .live-team img { height: 30px; object-fit: contain; width: 36px; }
 .live-team small { color: #acc5d3; font-size: 9px; font-weight: 900; }
